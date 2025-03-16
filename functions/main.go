@@ -1,31 +1,20 @@
-// demostration of how sort slice function is used to sort a slice of structs
+// returning closures from functions
 package main
 
 import (
 	"fmt"
-	"sort"
 )
 
-type Person struct {
-	name     string
-	lastName string
-	age      int
+func multiplyBybase(base int) func(int) int {
+	return func(value int) int {
+		return base * value
+	}
 }
 
 func main() {
-	people := []Person{
-		{"Subhayan", "Bhattacharya", 41},
-		{"Shaayan", "Bhattacharya", 37},
-		{"Poulomi", "Adhikary", 37},
+	multiplyFunc := multiplyBybase(20)
+	for i := 0; i <= 100; i = i + 10 {
+		fmt.Println("Value for i is: ", i)
+		fmt.Println(multiplyFunc(i))
 	}
-	for _, person := range people {
-		fmt.Println(person.lastName)
-	}
-
-	sort.Slice(people, func(i int, j int) bool {
-		fmt.Println(i, j)
-		return people[i].age < people[j].age
-	})
-
-	fmt.Println(people)
 }
