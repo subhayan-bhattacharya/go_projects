@@ -1,20 +1,24 @@
-// returning closures from functions
+// understanding call by value
+// when a function is called a copies of the params are made
 package main
 
 import (
 	"fmt"
 )
 
-func multiplyBybase(base int) func(int) int {
-	return func(value int) int {
-		return base * value
-	}
+type Person struct {
+	name     string
+	lastName string
+	age      int
+}
+
+func modifySomething(p Person) {
+	p.lastName = "Adhikary"
 }
 
 func main() {
-	multiplyFunc := multiplyBybase(20)
-	for i := 0; i <= 100; i = i + 10 {
-		fmt.Println("Value for i is: ", i)
-		fmt.Println(multiplyFunc(i))
-	}
+	p := Person{name: "Subhayan", lastName: "Bhattacharya", age: 40}
+	fmt.Println(p)
+	modifySomething(p)
+	fmt.Println(p)
 }
