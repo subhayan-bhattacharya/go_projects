@@ -1,44 +1,39 @@
-// types and methods
-// Wonderful example of how we can call by value and the internal attributes do not get updated
+// accept interface but return concrete types
 package main
 
 import (
 	"fmt"
-	"time"
 )
 
-type Counter struct {
-	total           int
-	lastUpdatedTime time.Time
+type Logger interface {
+	Log(message string)
 }
 
-func (c *Counter) Increment() {
-	c.total += 1
-	c.lastUpdatedTime = time.Now()
+type ConsoleLogger struct {
+	prefix string
 }
 
-func (c Counter) String() string {
-	return fmt.Sprintf("%d , %v", c.total, c.lastUpdatedTime)
+func (cl ConsoleLogger) Log(message string) {
+	fmt.Println(cl.prefix + message)
 }
 
-type Stringer interface {
-	String() string
+func (cl *ConsoleLogger) SetPrefix(prefix string) {
+	cl.prefix = prefix
 }
 
-type Incrementor interface {
-	Increment()
+func CallLogMethod(logger Logger) {
+	logger.Log(" is a genius")
+}
+
+func NewLogger() *ConsoleLogger {
+	return &ConsoleLogger{
+		prefix: "Subhayan",
+	}
 }
 
 func main() {
-	var myStringer Stringer
-	var myIncrementor Incrementor
-	pointerCounter := &Counter{}
-	valueCounter := Counter{}
-	myStringer = pointerCounter
-	myIncrementor = pointerCounter
-	fmt.Println(myStringer.String())
-	myIncrementor.Increment()
-	fmt.Println(myIncrementor)
-	fmt.Println(valueCounter)
-
+	logger := NewLogger()
+	CallLogMethod(logger)
+	logger.SetPrefix("Shaayan")
+	CallLogMethod(logger)
 }
