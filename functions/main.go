@@ -1,39 +1,36 @@
-// accept interface but return concrete types
+// compare interfaces
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
-type Logger interface {
-	Log(message string)
+type Doubler interface {
+	Double()
 }
 
-type ConsoleLogger struct {
-	prefix string
+type DoubleInt int
+
+func (d *DoubleInt) Double() {
+	*d = *d * 2
 }
 
-func (cl ConsoleLogger) Log(message string) {
-	fmt.Println(cl.prefix + message)
-}
+type DoubleIntSlice []int
 
-func (cl *ConsoleLogger) SetPrefix(prefix string) {
-	cl.prefix = prefix
-}
-
-func CallLogMethod(logger Logger) {
-	logger.Log(" is a genius")
-}
-
-func NewLogger() *ConsoleLogger {
-	return &ConsoleLogger{
-		prefix: "Subhayan",
+func (d DoubleIntSlice) Double() {
+	for i, value := range d {
+		d[i] = value * 2
 	}
 }
 
+func DoubleComparer(d1 Doubler, d2 Doubler) {
+	fmt.Println(d1 == d2)
+}
+
 func main() {
-	logger := NewLogger()
-	CallLogMethod(logger)
-	logger.SetPrefix("Shaayan")
-	CallLogMethod(logger)
+	var i1 DoubleInt = 10
+	var i2 DoubleInt = 10
+	var slice1 = DoubleIntSlice{1, 2, 3}
+	var slice2 = DoubleIntSlice{1, 2, 3}
+	DoubleComparer(&i1, &i2)
+	fmt.Println(slice1, slice2)
+	DoubleComparer(slice1, slice2)
 }
