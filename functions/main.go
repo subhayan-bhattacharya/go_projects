@@ -16,5 +16,10 @@ func main() {
 		age:      40,
 	}
 	x2 := x
-	fmt.Println(x2.(Person))
+	value, ok := x2.(int)
+	if ok {
+		fmt.Println("The value is :", value)
+	} else {
+		fmt.Println("type assertion failed.")
+	}
 }
