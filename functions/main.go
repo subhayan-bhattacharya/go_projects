@@ -1,52 +1,67 @@
+// In Go, whether a type implements an interface depends on the receiver types of its methods:
+
+// If a method has a value receiver (e.g. func (e RealEngine) Start()), both RealEngine and *RealEngine can use it.
+
+// If a method has a pointer receiver (e.g. func (e *RealEngine) Stop()), only *RealEngine can use it.
+
 package main
 
-import "fmt"
-
-type SayHappyBirthday interface {
-	SayHappyBirthday()
+type Engine interface {
+	// Start the engine
+	Start() string
+	// Stop the engine
+	Stop() string
 }
 
-type Person struct {
+type RealEngine struct {
+	// Engine name
 	Name string
-	Age  int
+	// Engine power
+	Power int
 }
 
-func (p Person) SayHappyBirthday() {
-	fmt.Println("Happy Birthday", p.Name)
-	p.Age++
-	fmt.Println("You are now", p.Age)
+func (e *RealEngine) Start() string {
+	return "Engine started"
+}
+func (e *RealEngine) Stop() string {
+	return "Engine stopped"
 }
 
-type PersonRepository struct {
-	people []SayHappyBirthday
+type Car struct {
+	// Car name
+	Name string
+	// Car engine
+	Engine Engine
 }
 
-func (pr *PersonRepository) AddPerson(p Person) {
-	pr.people = append(pr.people, p)
+func (c *Car) Start() string {
+	return c.Engine.Start()
+}
+func (c *Car) Stop() string {
+	return c.Engine.Stop()
 }
 
-func (pr *PersonRepository) GetPersonByName(name string) *Person {
-	for _, p := range pr.people {
-		person, ok := p.(Person) // This is necessary to convert SayHappyBirthday to Person
-		if ok && person.Name == name {
-			return &person
-		}
+func NewCar(name string, engine Engine) Car {
+	return Car{
+		Name:   name,
+		Engine: engine,
 	}
-	return nil
 }
 
 func main() {
-	repo := &PersonRepository{}
-
-	repo.AddPerson(Person{Name: "Subhayan", Age: 40})
-	repo.AddPerson(Person{Name: "Dimpu", Age: 37})
-	repo.AddPerson(Person{Name: "Shaayan", Age: 36})
-
-	person := repo.GetPersonByName("Shaayan")
-	if person != nil {
-		fmt.Println("Person found:", person.Name, "Age:", person.Age)
-		person.SayHappyBirthday()
-	} else {
-		fmt.Println("Person not found")
+	// Create a new engine
+	engine := RealEngine{
+		Name:  "V8",
+		Power: 500,
 	}
+
+	// Create a new car
+	// only *RealEngine implements the Engine interface, not RealEngine (the value type).
+	car := NewCar("Mustang", &engine)
+
+	// Start the car
+	println(car.Start())
+
+	// Stop the car
+	println(car.Stop())
 }
