@@ -1,91 +1,52 @@
 package main
+
 import "fmt"
 
-func LogOutput(message string) {
-	fmt.Println(message)
+type SayHappyBirthday interface {
+	SayHappyBirthday()
 }
 
-type SimpleDataStore struct {
-	// Add fields as needed
-	userData map[string]string
+type Person struct {
+	Name string
+	Age  int
 }
 
-func (s SimpleDataStore) UserNameForId(userId string) (string, bool) {
-	// Simulate a simple data store lookup
-	name, ok := s.userData[userId]
-	return name, ok
+func (p Person) SayHappyBirthday() {
+	fmt.Println("Happy Birthday", p.Name)
+	p.Age++
+	fmt.Println("You are now", p.Age)
 }
 
-// NewSimpleDataStore initializes a SimpleDataStore with some dummy data
-func NewSimpleDataStore() SimpleDataStore {
-	return SimpleDataStore{
-		userData: map[string]string{
-			"123": "Alice",
-			"456": "Bob",
-		},
+type PersonRepository struct {
+	people []SayHappyBirthday
+}
+
+func (pr *PersonRepository) AddPerson(p Person) {
+	pr.people = append(pr.people, p)
+}
+
+func (pr *PersonRepository) GetPersonByName(name string) *Person {
+	for _, p := range pr.people {
+		person, ok := p.(Person) // This is necessary to convert SayHappyBirthday to Person
+		if ok && person.Name == name {
+			return &person
+		}
 	}
+	return nil
 }
-
-// UserNameForId retrieves the user name for a given user ID
-// Simple interface which can be used to mock the data store
-type DataStore interface {
-	UserNameForId(userId string) (string, bool)
-}
-
-
-// Logger interface for logging messages
-//  My logging functionality or library needs to implement this interface
-type Logger interface {
-	Log(message string)
-}
-
-// LoggerAdapter meets the Logger interface
-// and wraps a function that takes a string
-type LoggerAdapter func(message string)
-func (l LoggerAdapter) Log(message string) {
-	l(message)
-}
-
-type SimpleLogic struct {
-	dataStore DataStore
-	logger    Logger
-}
-
-func (s SimpleLogic) SayHello(userId string) (string, error) {
-	s.l.Log("SayHello called with userId: " + userId)
-	name, ok := s.dataStore.UserNameForId(userId)
-	if !ok {
-		return "", fmt.Errorf("user not found")
-	}
-	return "Hello " + name, nil
-}
-
-// factory function to create a new SimpleLogic instance
-func NewSimpleLogic(dataStore DataStore, logger Logger) SimpleLogic {
-	return SimpleLogic{
-		dataStore: dataStore,
-		logger:    logger,
-	}
-}
-
-// i just need to say hello to the user
-type Logic interface {
-	SayHello(userId string) (string, error)
-}
-
 
 func main() {
-	// Initialize the data store
-	dataStore := NewSimpleDataStore()
+	repo := &PersonRepository{}
 
-	// Initialize the logger
-	logger := LoggerAdapter(LogOutput)
+	repo.AddPerson(Person{Name: "Subhayan", Age: 40})
+	repo.AddPerson(Person{Name: "Dimpu", Age: 37})
+	repo.AddPerson(Person{Name: "Shaayan", Age: 36})
 
-	// Example usage
-	userId := "123"
-	if name, ok := dataStore.UserNameForId(userId); ok {
-		logger.Log("User found: " + name)
+	person := repo.GetPersonByName("Shaayan")
+	if person != nil {
+		fmt.Println("Person found:", person.Name, "Age:", person.Age)
+		person.SayHappyBirthday()
 	} else {
-		logger.Log("User not found")
+		fmt.Println("Person not found")
 	}
 }
