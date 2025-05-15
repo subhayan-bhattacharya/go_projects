@@ -1,67 +1,42 @@
-// In Go, whether a type implements an interface depends on the receiver types of its methods:
-
-// If a method has a value receiver (e.g. func (e RealEngine) Start()), both RealEngine and *RealEngine can use it.
-
-// If a method has a pointer receiver (e.g. func (e *RealEngine) Stop()), only *RealEngine can use it.
+// using generics in go
+// Map function which can accept any slice and apply a function to each element
+// and return a new slice with the results
+// The function transforms each element of the slice into another type
 
 package main
 
-type Engine interface {
-	// Start the engine
-	Start() string
-	// Stop the engine
-	Stop() string
-}
+import (
+	"fmt"
+	"strconv"
+)
 
-type RealEngine struct {
-	// Engine name
-	Name string
-	// Engine power
-	Power int
-}
-
-func (e *RealEngine) Start() string {
-	return "Engine started"
-}
-func (e *RealEngine) Stop() string {
-	return "Engine stopped"
-}
-
-type Car struct {
-	// Car name
-	Name string
-	// Car engine
-	Engine Engine
-}
-
-func (c *Car) Start() string {
-	return c.Engine.Start()
-}
-func (c *Car) Stop() string {
-	return c.Engine.Stop()
-}
-
-func NewCar(name string, engine Engine) Car {
-	return Car{
-		Name:   name,
-		Engine: engine,
+// Signature of the Map function accepts a slice of type T and a
+// function that takes an element of type T and returns an element of type U
+func Map[T any, U any](slice []T, fn func(T) U) []U {
+	result := []U{}
+	for _, v := range slice {
+		result = append(result, fn(v))
 	}
+	return result
+}
+
+// Example function to convert int to string
+// This function will be passed to the Map function
+// It takes an int and returns a string
+func convertIntToString(i int) string {
+	return strconv.Itoa(i) // Convert int to string
+}
+
+func CountLetters(s string) int {
+	// count the number of bytes in the string
+	return len(s)
 }
 
 func main() {
-	// Create a new engine
-	engine := RealEngine{
-		Name:  "V8",
-		Power: 500,
-	}
-
-	// Create a new car
-	// only *RealEngine implements the Engine interface, not RealEngine (the value type).
-	car := NewCar("Mustang", &engine)
-
-	// Start the car
-	println(car.Start())
-
-	// Stop the car
-	println(car.Stop())
+	ints := []int{1, 2, 3, 4, 5}
+	strings := Map(ints, convertIntToString)
+	fmt.Println(strings) // Output: [1 2 3 4 5]
+	new_strings := []string{"hello", "world", "golang"}
+	lengths := Map(new_strings, CountLetters)
+	fmt.Println(lengths)
 }
