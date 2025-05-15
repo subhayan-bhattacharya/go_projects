@@ -4,7 +4,7 @@ package main
 
 import "fmt"
 
-type Stack[T any] struct {
+type Stack[T comparable] struct {
 	// stack is a slice of type T
 	stack []T
 }
@@ -23,6 +23,16 @@ func (s *Stack[T]) Pop() T {
 	s.stack = s.stack[:len(s.stack)-1]
 	return value
 }
+
+// check if the stack has certain element
+func (s *Stack[T]) Contains(value T) bool {
+	for _, v := range s.stack {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}
 func main() {
 	// create a stack of integers
 	intStack := Stack[int]{}
@@ -39,5 +49,11 @@ func main() {
 	stringStack.Push("Bhattacharya")
 	fmt.Println(stringStack.Pop())
 	fmt.Println(stringStack.Pop())
-	fmt.Println(stringStack.Pop())
+	stringStack.Push("Shaayan")
+	// fmt.Println(stringStack.Pop())
+	if stringStack.Contains("Shaayan") {
+		fmt.Println("Subhayan is in the stack")
+	} else {
+		fmt.Println("Subhayan is not in the stack")
+	}
 }
