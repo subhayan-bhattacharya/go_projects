@@ -1,59 +1,70 @@
 // using generics in go
-// implement a stack using generics
+// interfaces having type parameters
 package main
 
 import "fmt"
 
-type Stack[T comparable] struct {
-	// stack is a slice of type T
-	stack []T
+type Pair[T fmt.Stringer] struct {
+	First  T
+	Second T
 }
 
-// Push adds an element to the stack
-func (s *Stack[T]) Push(value T) {
-	s.stack = append(s.stack, value)
+// An interface which works with any type
+// that implements the Stringer interface, has the String method
+// that returns a string representation of the type
+// and has a Diff method that takes a parameter of the same type
+// and returns a float64 value.
+type Different[T any] interface {
+	fmt.Stringer
+	Diff(T) float64
 }
 
-// Pop removes an element from the stack
-func (s *Stack[T]) Pop() T {
-	if len(s.stack) == 0 {
-		panic("stack is empty")
+// func which takes a parameter of type T
+// and returns a Pair of type T
+// the T is implementing the Different interface
+// here we are using the Diff method of the Different interface
+func FindCloser[T Different[T]](a, b Pair[T]) Pair[T] {
+	d1 := a.First.Diff(a.Second)
+	d2 := b.First.Diff(b.Second)
+	if d1 < d2 {
+		fmt.Println("a is closer")
+		return a
 	}
-	value := s.stack[len(s.stack)-1]
-	s.stack = s.stack[:len(s.stack)-1]
-	return value
+	fmt.Println("b is closer")
+	return b
 }
 
-// check if the stack has certain element
-func (s *Stack[T]) Contains(value T) bool {
-	for _, v := range s.stack {
-		if v == value {
-			return true
-		}
-	}
-	return false
+// Point struct implements the Different interface
+type Point struct {
+	X, Y int
 }
+
+func (p Point) String() string {
+	fmt.Println("String method called")
+	return fmt.Sprintf("Point(%d, %d)", p.X, p.Y)
+}
+func (p Point) Diff(q Point) float64 {
+	x := p.X - q.X
+	y := p.Y - q.Y
+	return float64(x*x + y*y)
+}
+
 func main() {
-	// create a stack of integers
-	intStack := Stack[int]{}
-	intStack.Push(1)
-	intStack.Push(2)
-	intStack.Push(3)
-	fmt.Println(intStack.Pop()) // 3
-	fmt.Println(intStack.Pop()) // 2
-	fmt.Println(intStack.Pop()) // 1
+	p1 := Pair[Point]{Point{1, 2}, Point{3, 4}}
+	p2 := Pair[Point]{Point{5, 6}, Point{7, 8}}
+	check := FindCloser(p1, p2)
+	fmt.Println(check)
+	// output:
+	// b is closer
+	// String method called
+	// String method called
+	// {Point(5, 6) Point(7, 8)}
 
-	// create a stack of strings
-	stringStack := Stack[string]{}
-	stringStack.Push("Subhayan")
-	stringStack.Push("Bhattacharya")
-	fmt.Println(stringStack.Pop())
-	fmt.Println(stringStack.Pop())
-	stringStack.Push("Shaayan")
-	// fmt.Println(stringStack.Pop())
-	if stringStack.Contains("Shaayan") {
-		fmt.Println("Subhayan is in the stack")
-	} else {
-		fmt.Println("Subhayan is not in the stack")
-	}
+	/* When Go's fmt.Println(check) runs:
+
+	It sees that check is a struct.
+
+	It prints the struct in its default format: {field1 field2}
+
+	Since both field1 and field2 are of a type (Point) that has a String() method, it uses that method. */
 }
