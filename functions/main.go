@@ -2,6 +2,8 @@
 // interfaces having type parameters
 package main
 
+import "fmt"
+
 // The tilda (~) in the type constraint allows for type sets that include
 // types that are defined by the user. In this case, it allows for any type
 // that is defined as an alias of int, int8, int16, int32, or int64.
@@ -9,18 +11,15 @@ type Integer interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64
 }
 
-// Generic function to divide and mod two integers
-// T is a type parameter that must satisfy the Integer interface
-// This means that T can be any type that is an int, int8, int16, int32, or int64
-func divAndMod[T Integer](a, b T) (T, T) {
-	return a / b, a % b
+// The Convert function takes a value of type T1, which must satisfy the
+// Integer interface, and returns a value of type T2, which also must
+// satisfy the Integer interface. The function converts the value from
+// type T1 to type T2 using a type conversion.
+func Convert[T1, T2 Integer](value T1) T2 {
+	return T2(value)
 }
 
 func main() {
-	// Using the generic function with different integer types
-	// int
-	type MyInt int
-	quotient, remainder := divAndMod[MyInt](10, 3)
-	println("Quotient:", quotient)
-	println("Remainder:", remainder)
+	check := Convert[int, int8](10)
+	fmt.Println(check) // 10
 }
