@@ -2,8 +2,11 @@
 // interfaces having type parameters
 package main
 
+// The tilda (~) in the type constraint allows for type sets that include
+// types that are defined by the user. In this case, it allows for any type
+// that is defined as an alias of int, int8, int16, int32, or int64.
 type Integer interface {
-	int | int8 | int16 | int32 | int64
+	~int | ~int8 | ~int16 | ~int32 | ~int64
 }
 
 // Generic function to divide and mod two integers
@@ -14,17 +17,10 @@ func divAndMod[T Integer](a, b T) (T, T) {
 }
 
 func main() {
-	// Example usage of divAndMod function
-	// The function will work with any integer type
-	a, b := 10, 3
-	quotient, remainder := divAndMod(a, b)
+	// Using the generic function with different integer types
+	// int
+	type MyInt int
+	quotient, remainder := divAndMod[MyInt](10, 3)
 	println("Quotient:", quotient)
 	println("Remainder:", remainder)
-
-	// You can also use other integer types
-	var a8 int8 = 10
-	var b8 int8 = 3
-	quotient8, remainder8 := divAndMod(a8, b8)
-	println("Quotient:", quotient8)
-	println("Remainder:", remainder8)
 }
