@@ -1,7 +1,6 @@
 // The marriage between generic data structures and generic functions
-// generic Stack and functions to operate on that stack
-// We need to use an external Go package here to make sure that we can compare
-// two elements of a stack. The default comparable only does equal and not equal comparison
+// this time we use maps
+// Keys have to be comparable in Go , this is a Go rule
 
 package main
 
@@ -11,71 +10,66 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-type Stack[T constraints.Ordered] struct {
-	values []T
-}
+type MapStore[K comparable, V any] map[K]V
 
-func (s *Stack[T]) Push(value T) {
-	s.values = append(s.values, value)
-}
-
-func (s *Stack[T]) Pop() (T, bool) {
-	if len(s.values) == 0 {
-		var zero T
+func (m MapStore[K, V]) Get(k K) (V, bool) {
+	value, ok := m[k]
+	if ok {
+		return value, true
+	} else {
+		var zero V
 		return zero, false
 	}
-	element := s.values[len(s.values)-1]
-	s.values = s.values[:len(s.values)-1]
-	return element, true
 }
 
-func (s *Stack[T]) IsThere(element T) bool {
-	for _, value := range s.values {
-		if value == element {
-			return true
-		}
-	}
-	return false
+func (m MapStore[K, V]) Set(k K, v V) {
+	m[k] = v
 }
 
-func FindMaxInStack[T constraints.Ordered](s Stack[T]) (T, bool) {
-	if len(s.values) == 0 {
-		var zero T
-		return zero, false
+func (m MapStore[K, V]) Keys() []K {
+	mapLength := len(m)
+	fmt.Println(mapLength)
+	keys := []K{}
+	for key, value := range m {
+		fmt.Println("Getting value: ", value)
+		keys = append(keys, key)
 	}
-	maxValue := s.values[0]
-	for _, value := range s.values {
+	return keys
+}
+
+func (m MapStore[K, V]) Values() []V {
+	values := []V{}
+	for _, value := range m {
+		values = append(values, value)
+	}
+	return values
+}
+func FindKeysWithMaxValue[K comparable, V constraints.Ordered](m MapStore[K, V]) []K {
+	allValues := m.Values()
+	maxValue := allValues[0]
+	for _, value := range allValues {
 		if value > maxValue {
 			maxValue = value
 		}
 	}
-	fmt.Println("The max value about to be returned is :", maxValue)
-	return maxValue, true
+	keysWithMaxValue := []K{}
+	for key, value := range m {
+		if value == maxValue {
+			keysWithMaxValue = append(keysWithMaxValue, key)
+		}
+	}
+	return keysWithMaxValue
 }
 
 func main() {
-	s := Stack[int]{}
-	fmt.Println(s)
-	s.Push(1)
-	s.Push(56)
-	s.Push(78)
-	s.Push(81)
-	fmt.Println(s)
-	for {
-		value, isNotEmpty := s.Pop()
-		if isNotEmpty {
-			fmt.Println(value)
-		} else {
-			fmt.Println("Is empty")
-			break
-		}
-
+	NewMapStore := MapStore[string, int]{
+		"Skoda":    1,
+		"Mercedes": 3,
+		"Porsche":  1,
+		"Hyundai":  1,
 	}
-	maxValue, isEmpty := FindMaxInStack(s)
-	if isEmpty {
-		fmt.Println("The max value in the stack is :", maxValue)
-	} else {
-		fmt.Println("The stack is empty!!")
-	}
-
+	fmt.Println("getting key Merecedes: ", NewMapStore["Mercedes"])
+	fmt.Println(NewMapStore.Keys())
+	NewMapStore.Set("Volkswagen", 3)
+	fmt.Println("Keys which have the max value in the store is : ", FindKeysWithMaxValue(NewMapStore))
 }
