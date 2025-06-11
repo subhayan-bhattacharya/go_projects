@@ -1,20 +1,30 @@
-// The marriage between generic data structures and generic functions
-// this time we use maps
-// Keys have to be comparable in Go , this is a Go rule
+// Simple practice code for defining custom errors in Golang
 
 package main
 
 import "fmt"
 
-func addTo(base int, values ...int) []int {
-	results := []int{}
-	for _, value := range values {
-		results = append(results, base+value)
+type OddNumberError struct {
+	number int
+}
+
+func (n *OddNumberError) Error() string {
+	result := fmt.Sprintf("I hate odd numbers: %d", n.number)
+	return result
+}
+
+func CheckPositiveInt(number int) (bool, error) {
+	if number%2 != 0 {
+		return false, &OddNumberError{number: number}
 	}
-	return results
+	return true, nil
 }
 
 func main() {
-	check := addTo(100, 23, 45, 67, 90)
-	fmt.Println(check)
+	for i := 0; i < 10; i++ {
+		_, err := CheckPositiveInt(i)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 }
