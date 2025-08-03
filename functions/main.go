@@ -1,5 +1,3 @@
-// Self implementation of map and filter func in go using generics
-
 package main
 
 import (
@@ -7,36 +5,27 @@ import (
 	"strings"
 )
 
-func mapDemo[T any](values []T, mapFunc func(T) T) {
-	for index, value := range values {
-		fmt.Println("Checking the value :", value)
-		values[index] = mapFunc(value)
+func StringReverse(s string) []rune {
+	runes := []rune(s)
+	var reverse = []rune{}
+	for i := len(s) - 1; i >= 0; i-- {
+		reverse = append(reverse, runes[i])
 	}
+	return reverse
 }
 
-func filterDemo[T any](values []T, filterFunc func(T) bool) []T {
-	results := []T{}
-	for _, value := range values {
-		fmt.Println("Checking the value :", value)
-		if filterFunc(value) {
-			results = append(results, value)
-		}
-	}
-	return results
-}
-
-func upperCaseString(value string) string {
-	return strings.ToUpper(value)
-}
-
-func stringsWithMoreThan5Chars(value string) bool {
-	return len(value) > 5
+func isPalindrome(sentence string) bool {
+	reversed := StringReverse(sentence)
+	reversedModified := strings.ReplaceAll(strings.ToLower(string(reversed)), " ", "")
+	sentenceModified := strings.ReplaceAll(strings.ToLower(sentence), " ", "")
+	return sentenceModified == string(reversedModified)
 }
 
 func main() {
-	names := []string{"Subhayan", "Shaayan", "Dimpu", "Papa"}
-	mapDemo(names, upperCaseString)
-	fmt.Println(names)
-	filteredNames := filterDemo(names, stringsWithMoreThan5Chars)
-	fmt.Println(filteredNames)
+	sentence := "was it a cat i saw"
+	if isPalindrome(sentence) {
+		fmt.Println("It is a palindrome!")
+	} else {
+		fmt.Println("It is not a palindrome")
+	}
 }
