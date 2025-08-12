@@ -4,29 +4,61 @@ import (
 	"testing"
 )
 
-func TestIsPalindrome(t *testing.T) {
-	var testCases = struct {
-		sentences    []string
-		isPalindrome []bool
+func TestRemoveDuplicates(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected string
 	}{
-		sentences: []string{
-			"Taco cat",
-			"Mom",
-			"Murder for a jar of red rum",
-			"Go deliver a dare vile dog",
+		{
+			name:     "repeated letters",
+			input:    "programming",
+			expected: "progamin",
 		},
-		isPalindrome: []bool{
-			true,
-			true,
-			true,
-			true,
+		{
+			name:     "consecutive duplicates",
+			input:    "aabbcc",
+			expected: "abc",
+		},
+		{
+			name:     "case sensitive",
+			input:    "AaBbCc",
+			expected: "AaBbCc",
+		},
+		{
+			name:     "numbers",
+			input:    "1122334455",
+			expected: "12345",
+		},
+		{
+			name:     "special characters",
+			input:    "!!@@##",
+			expected: "!@#",
+		},
+		{
+			name:     "empty string",
+			input:    "",
+			expected: "",
+		},
+		{
+			name:     "single character",
+			input:    "a",
+			expected: "a",
+		},
+		{
+			name:     "no duplicates",
+			input:    "abcdef",
+			expected: "abcdef",
 		},
 	}
-	for index, sentence := range testCases.sentences {
-		result := isPalindrome(sentence)
-		expected := testCases.isPalindrome[index]
-		if result != expected {
-			t.Errorf("The sentence %s is not a palindrome", sentence)
-		}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := removeDuplicates(tc.input)
+			if result != tc.expected {
+				t.Errorf("removeDuplicates(%q) = %q, expected %q",
+					tc.input, result, tc.expected)
+			}
+		})
 	}
 }
