@@ -4,60 +4,32 @@ import (
 	"testing"
 )
 
-func TestRemoveDuplicates(t *testing.T) {
+func TestAnagramChecker(t *testing.T) {
 	testCases := []struct {
 		name     string
-		input    string
-		expected string
+		word1    string
+		word2    string
+		expected bool
 	}{
 		{
-			name:     "repeated letters",
-			input:    "programming",
-			expected: "progamin",
+			name:     "First",
+			word1:    "silent",
+			word2:    "listen",
+			expected: true,
 		},
 		{
-			name:     "consecutive duplicates",
-			input:    "aabbcc",
-			expected: "abc",
-		},
-		{
-			name:     "case sensitive",
-			input:    "AaBbCc",
-			expected: "AaBbCc",
-		},
-		{
-			name:     "numbers",
-			input:    "1122334455",
-			expected: "12345",
-		},
-		{
-			name:     "special characters",
-			input:    "!!@@##",
-			expected: "!@#",
-		},
-		{
-			name:     "empty string",
-			input:    "",
-			expected: "",
-		},
-		{
-			name:     "single character",
-			input:    "a",
-			expected: "a",
-		},
-		{
-			name:     "no duplicates",
-			input:    "abcdef",
-			expected: "abcdef",
+			name:     "Second",
+			word1:    "a gentleman",
+			word2:    "elegant man",
+			expected: true,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := removeDuplicates(tc.input)
+			result := checkAnagram(tc.word1, tc.word2)
 			if result != tc.expected {
-				t.Errorf("removeDuplicates(%q) = %q, expected %q",
-					tc.input, result, tc.expected)
+				t.Errorf("checkAnagram failed for testcase %s, expected %t", tc.name, tc.expected)
 			}
 		})
 	}
