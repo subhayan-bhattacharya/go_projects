@@ -1,4 +1,4 @@
-// testing anagrams in Go
+// getting the longest word in a sentence
 
 package main
 
@@ -7,30 +7,24 @@ import (
 	"strings"
 )
 
-func checkAnagram(word1 string, word2 string) bool {
-	word1Runes := []rune(strings.ToLower(word1))
-	word2Runes := []rune(strings.ToLower(word2))
-	charCount := map[rune]int{}
-	if len(word1) != len(word2) {
-		return false
+func getLongestWord(sentence string) string {
+	words := strings.Fields(sentence)
+	if len(words) == 0 {
+		return ""
 	}
-	for i := 0; i < len(word1Runes); i++ {
-		charCount[word1Runes[i]]++
-		charCount[word2Runes[i]]--
-	}
-
-	for _, value := range charCount {
-		if value != 0 {
-			return false
+	longestWord := words[0]
+	longest := len(words[0])
+	for _, word := range words {
+		if len(word) > longest {
+			longest = len(word)
+			longestWord = word
 		}
 	}
-	return true
+	return longestWord
 }
 
 func main() {
-	if checkAnagram("silent", "listen") {
-		fmt.Println("They are anagrams")
-	} else {
-		fmt.Println("They are not anagrams")
-	}
+	sentence := "The quick brown fox"
+	longest := getLongestWord(sentence)
+	fmt.Printf("The longest word is %s", longest)
 }
