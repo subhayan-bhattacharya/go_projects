@@ -4,38 +4,49 @@ import (
 	"testing"
 )
 
-func TestReplaceSubstring(t *testing.T) {
+func TestCountSubstrings(t *testing.T) {
 	testCases := []struct {
-		testName string
-		sentence string
-		expected string
+		testName  string
+		sentence  string
+		substring string
+		expected  int
 	}{
 		{
-			testName: "First",
-			sentence: "leetcode",
-			expected: "l",
+			testName:  "First",
+			sentence:  "abababa",
+			substring: "aba",
+			expected:  3,
 		},
 		{
-			testName: "Second",
-			sentence: "aabbcc",
-			expected: "",
+			testName:  "Second",
+			sentence:  "banana",
+			substring: "ana",
+			expected:  2,
 		},
 		{
-			testName: "Third",
-			sentence: "a",
-			expected: "a",
+			testName:  "Third",
+			sentence:  "mississippi",
+			substring: "issi",
+			expected:  2,
 		},
 		{
-			testName: "Fourth",
-			sentence: "åäöåä",
-			expected: "ö",
+			testName:  "Fourth",
+			sentence:  "aaaaa",
+			substring: "aa",
+			expected:  4,
+		},
+		{
+			testName:  "Fourth",
+			sentence:  "hello world",
+			substring: "l",
+			expected:  3,
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
-			result := findFirstNonRepeatingCharacter(tc.sentence)
+			result := countSubstringsUsingBuiltin(tc.sentence, tc.substring)
 			if result != tc.expected {
-				t.Errorf("test failed for testcase %s, expected %s result %s", tc.testName, tc.expected, result)
+				t.Errorf("test failed for testcase %s, expected %d result %d", tc.testName, tc.expected, result)
 			}
 
 		})

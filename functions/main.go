@@ -1,30 +1,38 @@
-// find first non repeating character in a string
+// count substring occurances
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
-func findFirstNonRepeatingCharacter(s string) string {
-	runes := []rune(s)
-	counter := make(map[rune]int, len(runes))
-
-	for _, r := range runes {
-		_, ok := counter[r]
-		if ok {
-			counter[r]++
+func countSubstringsUsingBuiltin(input string, substring string) int {
+	result := 0
+	if len(input) == 0 {
+		return result
+	}
+	if len(substring) == 0 {
+		return result
+	}
+	start := 0
+	for {
+		foundIndex := strings.Index(input[start:], substring)
+		if foundIndex == -1 {
+			return result
 		} else {
-			counter[r] = 1
+			result++
+			// this is clever
+			start = start + foundIndex + 1
+			if start >= len(input)-1 {
+				break
+			}
 		}
 	}
-	for _, r := range runes {
-		if counter[r] == 1 {
-			return string(r)
-		}
-	}
-	return ""
+	return result
 }
 
 func main() {
-	check := findFirstNonRepeatingCharacter("swiss")
+	check := countSubstringsUsingBuiltin("hello world", "l")
 	fmt.Println(check)
 }
