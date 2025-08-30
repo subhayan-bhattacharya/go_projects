@@ -1,5 +1,3 @@
-// count substring occurances
-
 package main
 
 import (
@@ -7,32 +5,43 @@ import (
 	"strings"
 )
 
-func countSubstringsUsingBuiltin(input string, substring string) int {
-	result := 0
-	if len(input) == 0 {
-		return result
+type StringTransformer func(string) string
+
+func (s StringTransformer) AndThen(other StringTransformer) StringTransformer {
+	return func (input string) string {
+		return other(s(input))
 	}
-	if len(substring) == 0 {
-		return result
+}
+
+func (s StringTransformer) Apply(inputs []string) []string {
+	results := make([]string, 0, len(inputs))
+	for _, value := range inputs {
+		results = append(results, s(value))
 	}
-	start := 0
-	for {
-		foundIndex := strings.Index(input[start:], substring)
-		if foundIndex == -1 {
-			return result
-		} else {
-			result++
-			// this is clever
-			start = start + foundIndex + 1
-			if start >= len(input)-1 {
-				break
-			}
-		}
-	}
-	return result
+	return results
+}
+
+func AddExclamation(input string) string {
+	var builder strings.Builder
+	builder.WriteString(input)
+	builder.WriteString(" !!!")
+	return builder.String()
 }
 
 func main() {
-	check := countSubstringsUsingBuiltin("hello world", "l")
-	fmt.Println(check)
+	inputs := []string {
+		"Shaayan is a good guy",
+		"Subhayan is a bad guy",
+		"Dimpu is a wonderful lady",
+	}
+	var transformer StringTransformer = strings.ToUpper
+	results := transformer.Apply(inputs)
+	for _, result := range results {
+		fmt.Println(result)
+	}
+
+	newResult := transformer.AndThen(AddExclamation).Apply(inputs)
+	for _, result := range newResult {
+		fmt.Println(result)
+	}
 }

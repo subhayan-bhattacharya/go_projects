@@ -1,54 +1,63 @@
 package main
 
 import (
+	"slices"
+	"strings"
 	"testing"
 )
 
-func TestCountSubstrings(t *testing.T) {
-	testCases := []struct {
-		testName  string
-		sentence  string
-		substring string
-		expected  int
-	}{
+type InputToOutput struct {
+	input string
+	output string
+}
+
+
+func testData() []InputToOutput {
+	testData := []InputToOutput{
 		{
-			testName:  "First",
-			sentence:  "abababa",
-			substring: "aba",
-			expected:  3,
+      input: "Subhayan is a great guy",
+			output: "SUBHAYAN IS A GREAT GUY",
 		},
 		{
-			testName:  "Second",
-			sentence:  "banana",
-			substring: "ana",
-			expected:  2,
-		},
-		{
-			testName:  "Third",
-			sentence:  "mississippi",
-			substring: "issi",
-			expected:  2,
-		},
-		{
-			testName:  "Fourth",
-			sentence:  "aaaaa",
-			substring: "aa",
-			expected:  4,
-		},
-		{
-			testName:  "Fourth",
-			sentence:  "hello world",
-			substring: "l",
-			expected:  3,
+			input: "Dimpu is a wonderful lady",
+			output: "DIMPU IS A WONDERFUL LADY",
 		},
 	}
-	for _, tc := range testCases {
-		t.Run(tc.testName, func(t *testing.T) {
-			result := countSubstringsUsingBuiltin(tc.sentence, tc.substring)
-			if result != tc.expected {
-				t.Errorf("test failed for testcase %s, expected %d result %d", tc.testName, tc.expected, result)
-			}
+	return testData
+}
 
-		})
+func TestStringTransformerApply(t *testing.T) {
+	var transformer StringTransformer = strings.ToUpper
+	data := testData()
+	inputs := make([]string, 0, len(data))
+	results := make([]string, 0, len(data))
+	for _, data := range data {
+		inputs = append(inputs, data.input)
+		results = append(results, data.output)
+	}
+	actualResults := transformer.Apply(inputs)
+	if !slices.Equal(results, actualResults) {
+		t.Error("The apply function did not work as expected")
 	}
 }
+
+func TestStringTransformerAndThen(t *testing.T) {
+	var transformer StringTransformer = strings.ToUpper
+	data := testData()
+	inputs := make([]string, 0, len(data))
+	results := make([]string, 0, len(data))
+	for _, data := range data {
+		inputs = append(inputs, data.input)
+		var builder strings.Builder
+		builder.WriteString(data.output)
+		builder.WriteString(" !!!")
+		results = append(results, builder.String())
+	}
+	actualResults := transformer.AndThen(AddExclamation).Apply(inputs)
+	if !slices.Equal(actualResults, results) {
+		t.Error("The AndThen function did not work")
+	}
+}
+
+
+
