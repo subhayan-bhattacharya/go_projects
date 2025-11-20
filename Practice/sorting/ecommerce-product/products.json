@@ -1,0 +1,76 @@
+{
+  "products": [
+    {
+      "name": "Wireless Mouse",
+      "price": 25.99,
+      "rating": 4.5,
+      "stock": 150
+    },
+    {
+      "name": "USB-C Cable",
+      "price": 12.99,
+      "rating": 4.8,
+      "stock": 0
+    },
+    {
+      "name": "Mechanical Keyboard",
+      "price": 89.99,
+      "rating": 4.7,
+      "stock": 45
+    },
+    {
+      "name": "Laptop Stand",
+      "price": 35.5,
+      "rating": 4.2,
+      "stock": 89
+    },
+    {
+      "name": "Webcam HD",
+      "price": 55.0,
+      "rating": 4.5,
+      "stock": 0
+    },
+    {
+      "name": "Gaming Headset",
+      "price": 79.99,
+      "rating": 4.9,
+      "stock": 23
+    },
+    {
+      "name": "Phone Charger",
+      "price": 12.99,
+      "rating": 3.8,
+      "stock": 200
+    },
+    {
+      "name": "Monitor 24-inch",
+      "price": 199.99,
+      "rating": 4.6,
+      "stock": 12
+    },
+    {
+      "name": "Desk Lamp",
+      "price": 25.99,
+      "rating": 4.5,
+      "stock": 67
+    },
+    {
+      "name": "Bluetooth Speaker",
+      "price": 45.0,
+      "rating": 4.1,
+      "stock": 0
+    },
+    {
+      "name": "External SSD 1TB",
+      "price": 89.99,
+      "rating": 5.0,
+      "stock": 8
+    },
+    {
+      "name": "Mouse Pad",
+      "price": 15.99,
+      "rating": 4.3,
+      "stock": 300
+    }
+  ]
+}

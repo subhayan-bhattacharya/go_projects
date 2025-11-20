@@ -1,0 +1,124 @@
+{
+  "students": [
+    {
+      "name": "Alice",
+      "grade": 85,
+      "attendance": 95.5,
+      "submitted": true
+    },
+    {
+      "name": "Bob",
+      "grade": 92,
+      "attendance": 88.0,
+      "submitted": true
+    },
+    {
+      "name": "Charlie",
+      "grade": 85,
+      "attendance": 92.0,
+      "submitted": true
+    },
+    {
+      "name": "David",
+      "grade": 78,
+      "attendance": 100.0,
+      "submitted": false
+    },
+    {
+      "name": "Eve",
+      "grade": 90,
+      "attendance": 85.5,
+      "submitted": false
+    },
+    {
+      "name": "Frank",
+      "grade": 0,
+      "attendance": 95.0,
+      "submitted": true
+    },
+    {
+      "name": "Grace",
+      "grade": 0,
+      "attendance": 98.0,
+      "submitted": false
+    },
+    {
+      "name": "Henry",
+      "grade": 85,
+      "attendance": 95.5,
+      "submitted": true
+    },
+    {
+      "name": "Ivy",
+      "grade": 92,
+      "attendance": 75.0,
+      "submitted": true
+    },
+    {
+      "name": "Jack",
+      "grade": 100,
+      "attendance": 100.0,
+      "submitted": true
+    },
+    {
+      "name": "Kelly",
+      "grade": 0,
+      "attendance": 0.0,
+      "submitted": false
+    },
+    {
+      "name": "Liam",
+      "grade": 88,
+      "attendance": 91.0,
+      "submitted": true
+    },
+    {
+      "name": "Mia",
+      "grade": 88,
+      "attendance": 91.0,
+      "submitted": false
+    },
+    {
+      "name": "Noah",
+      "grade": 75,
+      "attendance": 82.5,
+      "submitted": true
+    },
+    {
+      "name": "Olivia",
+      "grade": 95,
+      "attendance": 97.0,
+      "submitted": true
+    },
+    {
+      "name": "Peter",
+      "grade": 0,
+      "attendance": 100.0,
+      "submitted": true
+    },
+    {
+      "name": "Quinn",
+      "grade": 85,
+      "attendance": 88.0,
+      "submitted": false
+    },
+    {
+      "name": "Rachel",
+      "grade": 92,
+      "attendance": 88.0,
+      "submitted": false
+    },
+    {
+      "name": "Sam",
+      "grade": 92,
+      "attendance": 88.0,
+      "submitted": true
+    },
+    {
+      "name": "Tina",
+      "grade": 100,
+      "attendance": 95.0,
+      "submitted": false
+    }
+  ]
+}
