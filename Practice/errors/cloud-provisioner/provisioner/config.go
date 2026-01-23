@@ -5,7 +5,6 @@ import (
 	"fmt"
 )
 
-
 type RegionName string
 
 const (
@@ -13,6 +12,15 @@ const (
 	EuropeWest RegionName = "eu-west"
 	AsiaEast   RegionName = "asia-east"
 )
+
+func (r RegionName) IsValid() bool {
+	switch r {
+	case UsEast, EuropeWest, AsiaEast:
+		return true
+	default:
+		return false
+	}
+}
 
 type ResourceConfig struct {
 	Size   string
@@ -33,16 +41,14 @@ func CreateResourceConfig(config map[string]string) (ResourceConfig, error) {
 		}
 	}
 	region := RegionName(regionName)
-	switch RegionName(region) {
-	case UsEast, EuropeWest, AsiaEast:
-		return ResourceConfig{
-			Size:   size,
-			Region: region,
-		}, nil
-	default:
+	if !region.IsValid() {
 		errorMessage := fmt.Sprintf("The region name %s does not exist", regionName)
 		return ResourceConfig{}, customerrors.ValidationError{
 			Message: errorMessage,
 		}
 	}
+	return ResourceConfig{
+		Size:   size,
+		Region: region,
+	}, nil
 }

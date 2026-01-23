@@ -29,17 +29,20 @@ func NewProvisioner(maxVMs, maxDBs, maxLBs int) *Provisioner {
 }
 
 func (p *Provisioner) ProvisionVM(name string, config map[string]string) (Resource, error) {
+	// ensure the name is not empty
 	if name == "" {
 		return Resource{}, customerrors.ValidationError{
 			Message: "Cannot provision a Vm with an empty name",
 		}
 	}
+	// check if the resource with this name already exists
 	_, ok := p.Resources[name]
 	if ok {
 		return Resource{}, customerrors.ResourceExistsError{
 			ResourceName: name,
 		}
 	}
+	// check how many VM'S we already have
 	count := 0
 	for _, resource := range p.Resources {
 		if resource.Type == "VM" {
