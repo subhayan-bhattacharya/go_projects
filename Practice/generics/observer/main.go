@@ -3,54 +3,40 @@ package main
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"strconv"
 	"strings"
 )
 
-type Converter func(string) (string, error)
+type Handler func(any) string
 
-var Converters = map[string]Converter{}
+var handlers = map[reflect.Type]Handler{}
 
-func RegisterConverter(name string, fn Converter) error {
-	convertedName := strings.ToLower(name)
-	if convertedName == "" {
-		return errors.New("cannot supply an empty name")
+func Register[T any](fn func(T) string) {
+	var zero T
+	t := reflect.TypeOf(zero)
+	handlers[t] = func(v any) string {
+		return fn(v.(T))
 	}
-	if fn == nil {
-		return errors.New("the function cannot be nil")
-	}
-	_, ok := Converters[convertedName]
-	if ok {
-		return errors.New("the converter exists")
-	}
-	Converters[convertedName] = fn
-	return nil
 }
 
-func Convert(value string, converter string) (string, error) {
-	fn, ok := Converters[converter]
+func Handle(v any) (string, error) {
+	fn, ok := handlers[reflect.TypeOf(v)]
 	if !ok {
-		return "", errors.New("unable to find a converter")
+		return "", errors.New("could not find handler")
 	}
-	return fn(value)
-}
-
-func ConvertToLower(input string) (string, error) {
-	return strings.ToLower(input), nil
-}
-
-func TrimSpace(input string) (string, error) {
-	return strings.TrimSpace(input), nil
-}
-
-func init() {
-	_ = RegisterConverter("lower", ConvertToLower)
-	_ = RegisterConverter("trimmer", TrimSpace)
+	return fn(v), nil
 }
 
 func main() {
-	out, _ := Convert("upper", "lower")
-	fmt.Println(out)
-
-	out, _ = Convert("trim  ", "trimmer")
-	fmt.Println(out)
+	Register(func(i int) string { return strconv.Itoa(i) })
+	Register(func(i string) string { return strings.ToUpper(i) })
+	a1, _ := Handle(20)
+	a2, _ := Handle("subhayan")
+	a3, err := Handle(struct{ Name string }{Name: "Shaayan"})
+	fmt.Println(a1, a2)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println(a3)
+	}
 }
