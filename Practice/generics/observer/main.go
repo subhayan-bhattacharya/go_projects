@@ -1,42 +1,93 @@
+//https://chatgpt.com/c/6992cd90-4064-8388-8db3-23184432c475
+
 package main
 
 import (
 	"errors"
 	"fmt"
-	"reflect"
-	"strconv"
-	"strings"
 )
 
-type Handler func(any) string
+type User struct {
+	Id    int
+	Name  string
+	Email string
+}
 
-var handlers = map[reflect.Type]Handler{}
+type Order struct {
+	Number string
+	Total  int
+}
 
-func Register[T any](fn func(T) string) {
-	var zero T
-	t := reflect.TypeOf(zero)
-	handlers[t] = func(v any) string {
-		return fn(v.(T))
+type Source[T any] func([]byte) (T, error)
+type Transform[A, B any] func(A) (B, error)
+type Sink[T any] func(T) error
+
+var sourceReg = map[string]func([]byte) (any, error){}
+var transformReg = map[string]func(any) (any, error){}
+var sinkReg = map[string]func(any) error{}
+
+func RegisterSource[T any](name string, fn Source[T]) {
+	sourceReg[name] = func(data []byte) (any, error) {
+		return fn(data)
 	}
 }
 
-func Handle(v any) (string, error) {
-	fn, ok := handlers[reflect.TypeOf(v)]
-	if !ok {
-		return "", errors.New("could not find handler")
+func RegisterTransform[A, B any](name string, fn Transform[A, B]) {
+	transformReg[name] = func(input any) (any, error) {
+		a, ok := input.(A)
+		if !ok {
+			return nil, errors.New("wrong type supplied")
+		}
+		return fn(a)
 	}
-	return fn(v), nil
+}
+
+func RegisterSink[T any](input string, fn Sink[T]) {
+	sinkReg[input] = func(input any) error {
+		t, ok := input.(T)
+		if !ok {
+			return errors.New("wrong type supplied")
+		}
+		return fn(t)
+	}
+}
+
+func RunPipeline[A, B any](sourceName, transformName, sinkName string, data []byte) error {
+	src, ok := sourceReg[sourceName]
+	if !ok {
+		return errors.New("fucked up no function for this source")
+	}
+	tr, ok := transformReg[transformName]
+	if !ok {
+		return errors.New("fucked up no function for this transformer")
+	}
+	sink, ok := sinkReg[sinkName]
+	if !ok {
+		return errors.New("fucked up no function for this sink")
+	}
+	v, err := src(data)
+	if err != nil {
+		return fmt.Errorf("source %q failed: %w", sourceName, err)
+	}
+	a, ok := v.(A)
+	if !ok {
+		var zeroA A
+		return fmt.Errorf("source returned %T and not %T", a, zeroA)
+	}
+
+	t, err := tr(a)
+	if err != nil {
+		return errors.New("transformation failed")
+	}
+
+	b, ok := t.(B)
+	if !ok {
+		var zeroB B
+		return fmt.Errorf("source returned %T and not %T", b, zeroB)
+	}
+	return sink(b)
 }
 
 func main() {
-	Register(func(i int) string { return strconv.Itoa(i) })
-	Register(func(i string) string { return strings.ToUpper(i) })
-	a1, _ := Handle(20)
-	a2, _ := Handle("subhayan")
-	a3, err := Handle(struct{ Name string }{Name: "Shaayan"})
-	fmt.Println(a1, a2)
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println(a3)
-	}
+
 }
