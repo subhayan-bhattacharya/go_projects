@@ -1,4 +1,4 @@
-package main
+package domain
 
 import "time"
 
@@ -11,8 +11,8 @@ const (
 	Disabled UserStatus = "Disabled"
 )
 
-func (s UserStatus) isValid(status string) bool {
-	switch s {
+func (s UserStatus) isValid(status UserStatus) bool {
+	switch status {
 	case Active, Deleted, Disabled:
 		return true
 	default:
@@ -27,8 +27,4 @@ type User struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Status    UserStatus
-}
-
-func main() {
-
 }
