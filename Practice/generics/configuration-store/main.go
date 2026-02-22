@@ -1,6 +1,10 @@
 package main
 
-import "time"
+import (
+	"errors"
+	"fmt"
+	"time"
+)
 
 type DbConfig struct {
 	Host     string
@@ -13,20 +17,34 @@ type CacheConfig struct {
 	TimeToLive time.Duration
 }
 
-type ConfigStore[C any] struct {
-	Store map[string]C
+var configStore = ConfigStore{
+	Store: make(map[string]any),
 }
 
-func NewConfigStore[C any]() *ConfigStore[C] {
-	store := make(map[string]C)
-	return &ConfigStore[C]{
-		Store: store,
+type ConfigStore struct {
+	Store map[string]any
+}
+
+func RegisterConfig[C any](name string, config C) error {
+	_, ok := configStore.Store[name]
+	if ok {
+		return errors.New("the config already exists")
 	}
+	configStore.Store[name] = config
+	return nil
 }
 
-func (c *ConfigStore[C]) StoreConfig(name string, config C) error {
-	c.Store[name] = config
-	return nil
+func GetConfig[C any](name string) (C, error) {
+	var zeroC C
+	c, ok := configStore.Store[name]
+	if !ok {
+		return zeroC, fmt.Errorf("no such config with name %s", name)
+	}
+	config, ok := c.(C)
+	if !ok {
+		return zeroC, errors.New("the types do not match.")
+	}
+	return config, nil
 }
 
 func main() {
@@ -36,15 +54,13 @@ func main() {
 		Password: "admin",
 	}
 
-	store := NewConfigStore[DbConfig]()
-	_ = store.StoreConfig("database", dbConfig)
-
 	cacheConfig := CacheConfig{
 		Cache:      make(map[string]any),
 		TimeToLive: 5 * time.Minute,
 	}
 
-	cache := NewConfigStore[CacheConfig]()
-	_ = cache.StoreConfig("database", cacheConfig)
-
+	_ = RegisterConfig[DbConfig]("database", dbConfig)
+	_ = RegisterConfig[CacheConfig]("cache", cacheConfig)
+	config, _ := GetConfig[DbConfig]("database")
+	fmt.Printf("what is the value of host %s \n", config.Host)
 }
