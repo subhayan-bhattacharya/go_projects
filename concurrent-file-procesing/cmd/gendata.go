@@ -1,12 +1,12 @@
 /*
 Copyright © 2026 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
 	"fmt"
 
+	generator "concurrent-file-procesing/internal/generator"
 	"github.com/spf13/cobra"
 )
 
@@ -20,9 +20,28 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("gendata called")
-	},
+	RunE: runGendata,
+}
+
+func runGendata(cmd *cobra.Command, args []string) error {
+	files, err := cmd.Flags().GetInt("files")
+	if err != nil {
+		return err
+	}
+	rows, err := cmd.Flags().GetInt("rows")
+	if err != nil {
+		return err
+	}
+	outDir, err := cmd.Flags().GetString("outDir")
+	if err != nil {
+		return err
+	}
+	config := generator.CommandConfig{
+		Rows:   rows,
+		Files:  files,
+		OutDir: outDir,
+	}
+	return config.Run()
 }
 
 func init() {
