@@ -4,9 +4,8 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
-
 	generator "concurrent-file-procesing/internal/generator"
+
 	"github.com/spf13/cobra"
 )
 
@@ -45,6 +44,9 @@ func runGendata(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
+	gendataCmd.Flags().Int("files", 0, "how many files to create")
+	gendataCmd.Flags().Int("rows", 0, "how many rows per file")
+	gendataCmd.Flags().String("outDir", "", "Path to the output directory")
 	rootCmd.AddCommand(gendataCmd)
 
 	// Here you will define your flags and configuration settings.

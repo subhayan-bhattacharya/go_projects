@@ -27,4 +27,10 @@ func (t Transaction) ToCsv() (string, error) {
 		t.Currency,
 		t.TimeStamp.Format(time.RFC3339),
 	}
+	err := writer.Write(row)
+	if err != nil {
+		return "", fmt.Errorf("could not convert struct to csv string %w", err)
+	}
+	writer.Flush()
+	return buf.String(), nil
 }
