@@ -17,6 +17,68 @@ type Permission struct {
 	Level    int    `json:"level"`
 }
 
+// Set is a generic set backed by map[T]struct{}. Duplicate elements are silently ignored.
+type Set[T comparable] struct {
+	Items map[T]struct{}
+}
+
+// NewSet returns an empty Set with an initialised backing map.
+func NewSet[T comparable]() *Set[T] {
+	return &Set[T]{
+		Items: make(map[T]struct{}),
+	}
+}
+
+// Add inserts item into the Set. No-ops if item is already present.
+func (s *Set[T]) Add(item T) {
+	if _, ok := s.Items[item]; !ok {
+		s.Items[item] = struct{}{}
+	}
+}
+
+// Difference returns a new Set with elements in s that are not in other.
+func (s *Set[T]) Difference(other *Set[T]) *Set[T] {
+	result := NewSet[T]()
+	for item := range s.Items {
+		_, ok := other.Items[item]
+		if !ok {
+			result.Add(item)
+		}
+	}
+	return result
+}
+
+// Union returns a new Set containing all elements from both s and other.
+func (s *Set[T]) Union(other *Set[T]) *Set[T] {
+	result := NewSet[T]()
+	for item := range s.Items {
+		result.Add(item)
+	}
+	for item := range other.Items {
+		result.Add(item)
+	}
+	return result
+}
+
+func (s *Set[T]) Contains(item T) bool {
+	_, ok := s.Items[item]
+	return ok
+}
+
+func (s *Set[T]) Remove(item T) {
+	delete(s.Items, item)
+}
+
+func (s *Set[T]) Intersect(other *Set[T]) *Set[T] {
+	result := NewSet[T]()
+	for item := range s.Items {
+		if other.Contains(item) {
+			result.Add(item)
+		}
+	}
+	return result
+}
+
 func getData() (Data, error) {
 	content, err := os.ReadFile("data.json")
 	if err != nil {

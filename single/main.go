@@ -18,6 +18,7 @@ type Permission struct {
 	Level    int    `json:"level"`
 }
 
+// FromSlice builds a Set from a slice, silently skipping duplicate elements.
 func FromSlice[T comparable](data []T) *Set[T] {
 	initial := NewSet[T]()
 	return Reduce(data, initial, func(s *Set[T], data T) *Set[T] {
@@ -26,6 +27,7 @@ func FromSlice[T comparable](data []T) *Set[T] {
 	})
 }
 
+// ToSlice returns the Set elements as a slice. Order is not guaranteed (map iteration).
 func ToSlice[T comparable](input *Set[T]) []T {
 	var result []T
 	for key, _ := range input.data {
@@ -34,6 +36,7 @@ func ToSlice[T comparable](input *Set[T]) []T {
 	return result
 }
 
+// Reduce folds data into an accumulator of a different type U, applying reducer on each element.
 func Reduce[T, U any](data []T, initial U, reducer func(U, T) U) U {
 	result := initial
 	for _, singleData := range data {
@@ -42,6 +45,7 @@ func Reduce[T, U any](data []T, initial U, reducer func(U, T) U) U {
 	return result
 }
 
+// Filter returns a new slice containing only elements for which filterer returns true.
 func Filter[T comparable](input []T, filterer func(T) bool) []T {
 	var result []T
 	for _, value := range input {
@@ -52,16 +56,19 @@ func Filter[T comparable](input []T, filterer func(T) bool) []T {
 	return result
 }
 
+// struct{} as the value type uses zero memory — we only care about key presence.
 type Set[T comparable] struct {
 	data map[T]struct{}
 }
 
+// NewSet returns an empty Set with an initialised backing map.
 func NewSet[T comparable]() *Set[T] {
 	return &Set[T]{
 		data: make(map[T]struct{}),
 	}
 }
 
+// Add returns an error instead of silently overwriting so callers can detect duplicates.
 func (s *Set[T]) Add(element T) error {
 	_, ok := s.data[element]
 	if ok {
@@ -71,6 +78,7 @@ func (s *Set[T]) Add(element T) error {
 	return nil
 }
 
+// Remove deletes element from the Set. Returns an error if the element is not present.
 func (s *Set[T]) Remove(element T) error {
 	_, ok := s.data[element]
 	if !ok {
@@ -80,11 +88,13 @@ func (s *Set[T]) Remove(element T) error {
 	return nil
 }
 
+// Contains reports whether element is present in the Set.
 func (s *Set[T]) Contains(element T) bool {
 	_, ok := s.data[element]
 	return ok
 }
 
+// Intersect reuses ToSlice+Filter to avoid duplicating iteration logic.
 func (s *Set[T]) Intersect(other *Set[T]) *Set[T] {
 	result := NewSet[T]()
 	sliceS := ToSlice[T](s)
@@ -97,12 +107,13 @@ func (s *Set[T]) Intersect(other *Set[T]) *Set[T] {
 	return result
 }
 
+// Union adds both sets; duplicate Add errors are intentionally ignored since overlap is expected.
 func (s *Set[T]) Union(other *Set[T]) *Set[T] {
 	result := NewSet[T]()
-	for key, _ := range other.data {
+	for key := range other.data {
 		_ = result.Add(key)
 	}
-	for key, _ := range s.data {
+	for key := range s.data {
 		_ = result.Add(key)
 	}
 	return result
