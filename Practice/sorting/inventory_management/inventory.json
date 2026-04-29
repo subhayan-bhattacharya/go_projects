@@ -1,0 +1,42 @@
+[
+  {
+    "SKU": "A-101",
+    "Price": 15.99,
+    "InStock": true
+  },
+  {
+    "SKU": "B-205",
+    "Price": 15.99,
+    "InStock": false
+  },
+  {
+    "SKU": "C-300",
+    "Price": 45.5,
+    "InStock": true
+  },
+  {
+    "SKU": "D-410",
+    "Price": 5.0,
+    "InStock": false
+  },
+  {
+    "SKU": "E-522",
+    "Price": 100.0,
+    "InStock": false
+  },
+  {
+    "SKU": "F-601",
+    "Price": 15.99,
+    "InStock": true
+  },
+  {
+    "SKU": "G-777",
+    "Price": 88.88,
+    "InStock": true
+  },
+  {
+    "SKU": "H-800",
+    "Price": 88.88,
+    "InStock": false
+  }
+]

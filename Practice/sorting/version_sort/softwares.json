@@ -1,0 +1,38 @@
+[
+  {
+    "Name": "Feature A",
+    "Version": "1.10.3"
+  },
+  {
+    "Name": "Feature B",
+    "Version": "2.1.0"
+  },
+  {
+    "Name": "Feature C",
+    "Version": "1.9.9"
+  },
+  {
+    "Name": "Feature D",
+    "Version": "1.10.15"
+  },
+  {
+    "Name": "Feature E",
+    "Version": "0.5.0"
+  },
+  {
+    "Name": "Feature F",
+    "Version": "1.10.03"
+  },
+  {
+    "Name": "Feature G",
+    "Version": "2.0.0"
+  },
+  {
+    "Name": "Feature H",
+    "Version": "1.1.100"
+  },
+  {
+    "Name": "Feature I",
+    "Version": "1.10"
+  }
+]

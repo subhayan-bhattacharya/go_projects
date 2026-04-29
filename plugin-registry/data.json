@@ -1,0 +1,72 @@
+[
+  {
+    "SensorID": "THERM-001",
+    "Value": 22.5,
+    "Unit": "Celsius",
+    "Timestamp": "2026-03-04T12:00:00Z",
+    "Tags": {"floor": "1", "zone": "A"}
+  },
+  {
+    "SensorID": "THERM-002",
+    "Value": -10.2,
+    "Unit": "Celsius",
+    "Timestamp": "2026-03-04T12:01:00Z",
+    "Tags": null
+  },
+  {
+    "SensorID": "THERM-003",
+    "Value": 105.0,
+    "Unit": "Celsius",
+    "Timestamp": "2026-03-04T12:02:00Z",
+    "Tags": {"priority": "high"}
+  },
+  {
+    "SensorID": "THERM-CRIT",
+    "Value": -300.0,
+    "Unit": "Celsius",
+    "Timestamp": "2026-03-04T12:03:00Z",
+    "Tags": {"location": "outer-space"}
+  },
+  {
+    "SensorID": "THERM-004",
+    "Value": 0.0,
+    "Unit": "Celsius",
+    "Timestamp": "2026-03-04T12:04:00Z",
+    "Tags": null
+  },
+  {
+    "SensorID": "THERM-005",
+    "Value": 19.8,
+    "Unit": "Celsius",
+    "Timestamp": "2026-03-04T12:05:00Z",
+    "Tags": {"status": "calibrating"}
+  },
+  {
+    "SensorID": "THERM-006",
+    "Value": 21.1,
+    "Unit": "Celsius",
+    "Timestamp": "2026-03-04T12:06:00Z",
+    "Tags": {"room": "server-closet"}
+  },
+  {
+    "SensorID": "THERM-007",
+    "Value": 45.3,
+    "Unit": "Celsius",
+    "Timestamp": "2026-03-04T12:07:00Z",
+    "Tags": null
+  },
+  {
+    "SensorID": "THERM-008",
+    "Value": -273.15,
+    "Unit": "Celsius",
+    "Timestamp": "2026-03-04T12:08:00Z",
+    "Tags": {"note": "absolute-zero-limit"}
+  },
+  {
+    "SensorID": "THERM-999",
+    "Value": 5000.0,
+    "Unit": "Celsius",
+    "Timestamp": "2026-03-04T12:09:00Z",
+    "Tags": {"warning": "extreme-heat"}
+  }
+]

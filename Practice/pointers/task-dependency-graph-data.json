@@ -1,0 +1,46 @@
+{
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "description": "Setup project",
+      "status": "pending",
+      "dependencies": []
+    },
+    {
+      "id": "TASK-002",
+      "description": "Design database",
+      "status": "pending",
+      "dependencies": ["TASK-001"]
+    },
+    {
+      "id": "TASK-003",
+      "description": "Write API",
+      "status": "pending",
+      "dependencies": ["TASK-002"]
+    },
+    {
+      "id": "TASK-004",
+      "description": "Write tests",
+      "status": "pending",
+      "dependencies": ["TASK-003", "TASK-999"]
+    },
+    {
+      "id": "TASK-005",
+      "description": "Deploy to staging",
+      "status": "pending",
+      "dependencies": ["TASK-004", "TASK-888", "TASK-999"]
+    },
+    {
+      "id": "TASK-006",
+      "description": "QA Testing",
+      "status": "pending",
+      "dependencies": ["TASK-005", "TASK-777"]
+    },
+    {
+      "id": "TASK-007",
+      "description": "Independent task",
+      "status": "pending",
+      "dependencies": []
+    }
+  ]
+}

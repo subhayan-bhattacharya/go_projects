@@ -1,0 +1,22 @@
+{
+  "user_ids": [101, 202, 303, 101, 404, 202],
+  "country_codes": ["US", "UK", "DE", "UK", "FR"],
+  "permissions": [
+    {
+      "resource": "User",
+      "level": 1
+    },
+    {
+      "resource": "Admin",
+      "level": 5
+    },
+    {
+      "resource": "User",
+      "level": 1
+    },
+    {
+      "resource": "Billing",
+      "level": 2
+    }
+  ]
+}
