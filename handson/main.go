@@ -79,6 +79,38 @@ func (s *Set[T]) Intersect(other *Set[T]) *Set[T] {
 	return result
 }
 
+func (s *Set[T]) Len() int {
+	return len(s.Items)
+}
+
+func (s *Set[T]) IsEmpty() bool {
+	return len(s.Items) == 0
+}
+
+func (s *Set[T]) Clear() {
+	clear(s.Items)
+}
+
+func (s *Set[T]) IsSubset(other *Set[T]) bool {
+	for item := range s.Items {
+		_, ok := other.Items[item]
+		if !ok {
+			return false
+		}
+	}
+	return true
+}
+
+func (s *Set[T]) IsSuperset(other *Set[T]) bool {
+	for item := range other.Items {
+		_, ok := s.Items[item]
+		if !ok {
+			return false
+		}
+	}
+	return true
+}
+
 func getData() (Data, error) {
 	content, err := os.ReadFile("data.json")
 	if err != nil {
