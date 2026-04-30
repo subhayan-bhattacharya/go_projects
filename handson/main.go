@@ -111,6 +111,22 @@ func (s *Set[T]) IsSuperset(other *Set[T]) bool {
 	return true
 }
 
+func FromSlice[T comparable](input []T) *Set[T] {
+	result := NewSet[T]()
+	for _, item := range input {
+		result.Add(item)
+	}
+	return result
+}
+
+func ToSlice[T comparable](s *Set[T]) []T {
+	result := make([]T, 0)
+	for item := range s.Items {
+		result = append(result, item)
+	}
+	return result
+}
+
 func getData() (Data, error) {
 	content, err := os.ReadFile("data.json")
 	if err != nil {
@@ -127,5 +143,19 @@ func getData() (Data, error) {
 
 func main() {
 	data, _ := getData()
-	fmt.Println(data)
+	deDuplicatedUsers := FromSlice(data.UserIds)
+	fmt.Println(ToSlice(deDuplicatedUsers))
+	deDuplicatedCountryCodes := FromSlice(data.CountryCodes)
+	fmt.Println(ToSlice(deDuplicatedCountryCodes))
+	deDuplicatedPermissions := FromSlice(data.Permissions)
+	fmt.Println(ToSlice(deDuplicatedPermissions))
+	itemsCount := len(data.UserIds)
+	left := FromSlice(data.UserIds[:itemsCount/2])
+	right := FromSlice(data.UserIds[itemsCount/2:])
+	fmt.Println("Left: ", ToSlice(left))
+	fmt.Println("Right: ", ToSlice(right))
+	fmt.Println(ToSlice(left.Intersect(right)))
+	fmt.Println(ToSlice(left.Union(right)))
+	fmt.Println(left.IsSubset(right))
+	fmt.Println(left.IsSuperset(right))
 }

@@ -1,6 +1,6 @@
 {
-  "user_ids": [101, 202, 303, 101, 404, 202],
-  "country_codes": ["US", "UK", "DE", "UK", "FR"],
+  "user_ids": [101, 202, 303, 101, 404, 202, 505, 303, 606, 505, 101, 707],
+  "country_codes": ["US", "UK", "DE", "UK", "FR", "IN", "US", "DE", "JP", "IN", "FR"],
   "permissions": [
     {
       "resource": "User",
@@ -16,6 +16,26 @@
     },
     {
       "resource": "Billing",
+      "level": 2
+    },
+    {
+      "resource": "Admin",
+      "level": 5
+    },
+    {
+      "resource": "Reporting",
+      "level": 3
+    },
+    {
+      "resource": "Billing",
+      "level": 2
+    },
+    {
+      "resource": "Reporting",
+      "level": 3
+    },
+    {
+      "resource": "User",
       "level": 2
     }
   ]
