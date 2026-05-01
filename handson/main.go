@@ -113,16 +113,24 @@ func (s *Set[T]) IsSuperset(other *Set[T]) bool {
 
 func FromSlice[T comparable](input []T) *Set[T] {
 	result := NewSet[T]()
-	for _, item := range input {
-		result.Add(item)
-	}
-	return result
+	return Reduce(input, result, func(data T, result *Set[T]) *Set[T] {
+		result.Add(data)
+		return result
+	})
 }
 
 func ToSlice[T comparable](s *Set[T]) []T {
 	result := make([]T, 0)
 	for item := range s.Items {
 		result = append(result, item)
+	}
+	return result
+}
+
+func Reduce[T, U any](data []T, initial U, reducer func(T, U) U) U {
+	result := initial
+	for _, item := range data {
+		initial = reducer(item, initial)
 	}
 	return result
 }
