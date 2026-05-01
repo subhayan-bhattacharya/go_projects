@@ -130,7 +130,17 @@ func ToSlice[T comparable](s *Set[T]) []T {
 func Reduce[T, U any](data []T, initial U, reducer func(T, U) U) U {
 	result := initial
 	for _, item := range data {
-		initial = reducer(item, initial)
+		result = reducer(item, result)
+	}
+	return result
+}
+
+func Filter[T any](data []T, filterer func(T) bool) []T {
+	result := make([]T, 0)
+	for _, item := range data {
+		if filterer(item) {
+			result = append(result, item)
+		}
 	}
 	return result
 }
