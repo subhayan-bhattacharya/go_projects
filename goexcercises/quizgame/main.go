@@ -33,26 +33,28 @@ func main() {
 
 func playGame(timeLimit int, problems []Problem) (int, int) {
 	score, wrong := 0, 0
-	reader := bufio.NewReader(os.Stdin)
+
+	answerChan := make(chan string)
+	go func() {
+		reader := bufio.NewReader(os.Stdin)
+		for {
+			input, _ := reader.ReadString('\n')
+			userAnswer := strings.TrimSpace(input)
+			answerChan <- userAnswer
+		}
+	}()
 	for _, problem := range problems {
 		fmt.Printf("What is the answer to %s: ", problem.Question)
-		answerChan := make(chan string, 1)
 		timer := time.NewTimer(time.Duration(timeLimit) * time.Second)
-		go func() {
-			<-timer.C
-			answerChan <- "timeout"
-		}()
-		input, _ := reader.ReadString('\n')
-		userAnswer := strings.TrimSpace(input)
-		timer.Stop()
 		select {
+		case <-timer.C:
+			fmt.Println("time's up")
+			wrong++
 		case answer := <-answerChan:
-			if answer == "timeout" {
-				fmt.Println("time is up!")
-				wrong++
+			if !timer.Stop() {
+				<-timer.C
 			}
-		default:
-			if userAnswer == problem.Answer {
+			if answer == problem.Answer {
 				fmt.Println("Correct!")
 				score++
 			} else {
