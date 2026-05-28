@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 )
 
@@ -14,18 +13,12 @@ func readFile(file string) (cyoa.Story, error) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	byteValue, err := io.ReadAll(jsonFile)
-	if err != nil {
-		fmt.Println("Error reading file:", err)
-		return cyoa.Story{}, err
-	}
-	var story cyoa.Story
-	err = json.Unmarshal(byteValue, &story)
-	if err != nil {
-		fmt.Println("Error unmarshalling JSON:", err)
-		return cyoa.Story{}, err
-	}
 	defer jsonFile.Close()
+	var story cyoa.Story
+	decoder := json.NewDecoder(jsonFile)
+	if err := decoder.Decode(&story); err != nil {
+		fmt.Println(err)
+	}
 	return story, nil
 }
 
@@ -35,5 +28,7 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(story)
+	for key, _ := range story {
+		fmt.Println(key)
+	}
 }
