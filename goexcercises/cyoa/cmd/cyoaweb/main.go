@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 func readFile(file string) (cyoa.Story, error) {
@@ -18,6 +19,16 @@ func readFile(file string) (cyoa.Story, error) {
 	return cyoa.JsonStory(jsonFile)
 }
 
+func pathFn(r *http.Request) string {
+	log.Printf("The path received is %s", r.URL.Path)
+	path := strings.TrimSpace(r.URL.Path)
+	if path == "/story" || path == "/story/" {
+		path = "/story/intro"
+	}
+	path = path[len("/story/"):]
+	return path
+}
+
 func main() {
 	port := flag.Int("port", 3000, "the port number in which the application runs")
 	input := flag.String("input", "data.json", "The input json to the code.")
@@ -25,7 +36,10 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	handler := cyoa.NewHandler(story)
+
+	handler := cyoa.NewHandler(story, cyoa.WithTemplate(nil), cyoa.WithCustomPath(pathFn))
+	mux := http.NewServeMux()
+	mux.Handle("/story/", handler)
 	fmt.Printf("Starting the server at port %d\n", *port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), handler))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), mux))
 }
