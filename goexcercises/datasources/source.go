@@ -2,6 +2,7 @@ package datasources
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -11,9 +12,24 @@ type DataSource[T any] interface {
 	ReadAll() ([]T, error)
 }
 
-func Ingest[T any](source DataSource[T]) []T {
-	output, _ := source.ReadAll()
-	return output
+type RecordSerializer struct{}
+
+func (s *RecordSerializer) SerializeFrom(r io.Reader) ([]byte, error) {
+	return io.ReadAll(r)
+}
+
+func Ingest[T any](source DataSource[T]) ([]T, error) {
+	serializer := RecordSerializer{}
+	pr, pw := io.Pipe()
+	go func() {
+		defer pw.Close()
+		output, _ := source.ReadAll()
+		json.NewEncoder(pw).Encode(output)
+	}()
+	data, _ := serializer.SerializeFrom(pr)
+	var output []T
+	err := json.Unmarshal(data, &output)
+	return output, err
 }
 
 func readData(filename string) ([][]string, error) {
