@@ -40,7 +40,7 @@ func Parse(r io.Reader) ([]Link, error) {
 				break
 			}
 		}
-		if href != "" && !strings.HasPrefix(href, "#") {
+		{
 			links = append(links, Link{
 				Href: href,
 				Link: strings.TrimSpace(extractText(node)),
