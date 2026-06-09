@@ -1,6 +1,7 @@
 package htmlparser
 
 import (
+	"fmt"
 	"io"
 	"strings"
 
@@ -48,6 +49,7 @@ func text(n *html.Node) string {
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		ret += text(c) + " "
 	}
+	fmt.Printf("what is getting returned %s\n", ret)
 	return strings.Join(strings.Fields(ret), " ")
 }
 
