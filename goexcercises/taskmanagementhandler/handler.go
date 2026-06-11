@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"time"
+
+	"golang.org/x/time/rate"
 )
 
 type Task struct {
@@ -41,6 +44,28 @@ type responseWriter struct {
 func (r *responseWriter) WriteHeader(statusCode int) {
 	r.statusCode = statusCode
 	r.ResponseWriter.WriteHeader(statusCode)
+}
+
+type RateLimitDecorator struct {
+	Handler      TaskHandler
+	LimitsByHost map[string]*rate.Limiter
+}
+
+func (r *RateLimitDecorator) Handle(writer http.ResponseWriter, request *http.Request) {
+	host := request.Host
+	slog.Info("Checking limit for host : ", "host", host)
+	limiter, ok := r.LimitsByHost[host]
+	if ok {
+		if !limiter.Allow() {
+			slog.Warn("rate limit exceeded for host : ", "host", host)
+			http.Error(writer, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
+			return
+		}
+	} else {
+		r.LimitsByHost[host] = rate.NewLimiter(rate.Every(20*time.Second), 3)
+	}
+
+	r.Handler.Handle(writer, request)
 }
 
 type LoggingDecorator struct {
