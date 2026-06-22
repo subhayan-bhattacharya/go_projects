@@ -1,9 +1,19 @@
 package main
 
 import (
-	"fmt"
+	"metricsconsumer"
+	"time"
 )
 
 func main() {
-	fmt.Println("Starting ...")
+	snapshot := metricsconsumer.NamespaceSnapshot{
+		Namespace: "lbs",
+		CPUCores:  12,
+		MemoryMB:  330,
+		PodCount:  10,
+		Timestamp: time.Time{},
+	}
+	writer := metricsconsumer.TerminalWriter{}
+	renderer := metricsconsumer.NewTerminalWriterRenderer[metricsconsumer.NamespaceSnapshot](writer, metricsconsumer.NamespaceSnapshotConverter)
+	_ = renderer.RenderAll([]metricsconsumer.NamespaceSnapshot{snapshot})
 }

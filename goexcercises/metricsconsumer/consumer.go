@@ -1,8 +1,7 @@
 package metricsconsumer
 
 import (
-	"fmt"
-	"reflect"
+	"strconv"
 	"time"
 )
 
@@ -16,36 +15,46 @@ type NamespaceSnapshot struct {
 	Timestamp time.Time
 }
 
-func extractStructFields(snapshopt NamespaceSnapshot) []string {
-	t := reflect.TypeOf(snapshopt)
-	numFields := t.NumField()
-	fieldNames := make([]string, numFields)
-	for i := range numFields {
-		fieldNames[i] = t.Field(i).Name
+func NamespaceSnapshotConverter(snapshot NamespaceSnapshot) ([]string, []string) {
+	headers := []string{"Namespace", "CPUCores", "MemoryMB", "PodCount", "Timestamp"}
+	values := []string{
+		snapshot.Namespace,
+		strconv.FormatFloat(snapshot.CPUCores, 'f', -1, 64),
+		strconv.FormatFloat(snapshot.MemoryMB, 'f', -1, 64),
+		strconv.Itoa(snapshot.PodCount),
+		snapshot.Timestamp.Format(time.RFC3339),
 	}
-	return fieldNames
+	return headers, values
 }
 
 type RenderBackend[T any] interface {
-	Render(snapshot T) error
+	RenderAll(snapshpts []T) error
 }
+
+type converterFunc[T any] func(T) (headers []string, values []string)
 
 type TerminalWriterRenderer[T any] struct {
-	writer TerminalWriter
+	writer    TerminalWriter
+	converter converterFunc[T]
 }
 
-func NewTerminalWriterRenderer[T any](writer TerminalWriter) TerminalWriterRenderer[T] {
+func NewTerminalWriterRenderer[T any](writer TerminalWriter, converter converterFunc[T]) TerminalWriterRenderer[T] {
 	return TerminalWriterRenderer[T]{
-		writer: writer,
+		writer:    writer,
+		converter: converter,
 	}
 }
 
-func (r TerminalWriterRenderer[T]) Render(snapshot T) error {
-	nsSnapshot, ok := any(snapshot).(NamespaceSnapshot)
-	if ok {
-		_ := extractStructFields(nsSnapshot)
-	} else {
-		return fmt.Errorf("could not send data as data sent is not the correct type.")
+func (r TerminalWriterRenderer[T]) RenderAll(snapshots []T) error {
+	var headers []string
+	var data [][]string
+	for _, snapshot := range snapshots {
+		h, v := r.converter(snapshot)
+		if len(headers) == 0 {
+			headers = h
+		}
+		data = append(data, v)
 	}
+	r.writer.WriteTable(headers, data)
 	return nil
 }
