@@ -95,6 +95,20 @@ var _ = Describe("CheckUrls", func() {
 			}
 			Expect(found).To(BeTrue(), "expected a dial error for the unreachable domain")
 		})
+
+		It("reports a timeout error for a slow URL", func() {
+			var slowResult healthprobe.Result
+			var found bool
+			for _, res := range results {
+				if res.URL == slowServer.URL {
+					slowResult = res
+					found = true
+					break
+				}
+			}
+			Expect(found).To(BeTrue(), "expected a result for the slow server")
+			Expect(slowResult.Error).To(MatchError("timeout waiting for response"))
+		})
 	})
 
 	Context("when given an empty list", func() {

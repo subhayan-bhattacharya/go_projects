@@ -44,26 +44,44 @@ func CheckUrls(urls []string) []Result {
 
 func healthcheck(result chan<- Result, url string, wg *sync.WaitGroup) {
 	defer wg.Done()
-	client := http.Client{Timeout: 5 * time.Second}
-	req, _ := http.NewRequest("GET", url, nil)
-	start := time.Now()
-	resp, err := client.Do(req)
-	duration := time.Since(start)
-	if err != nil {
+	//I make this a buffered channel so that when timeout happens, then this function would
+	//exit and then no one would be listening on this channel anymore for http results
+	httpChannel := make(chan Result, 1)
+	timer := time.NewTimer(2 * time.Second)
+	defer timer.Stop()
+	go func() {
+		client := http.Client{}
+		req, _ := http.NewRequest("GET", url, nil)
+		start := time.Now()
+		resp, err := client.Do(req)
+		duration := time.Since(start)
+		if err != nil {
+			httpChannel <- Result{
+				URL:      url,
+				Duration: duration,
+				Error:    err,
+			}
+			return
+		}
+		defer resp.Body.Close()
+		httpResult := Result{
+			URL:        url,
+			StatusCode: resp.StatusCode,
+			Duration:   duration,
+			Error:      err,
+		}
+		httpChannel <- httpResult
+	}()
+	select {
+	case res := <-httpChannel:
+		result <- res
+	case <-timer.C:
+		fmt.Printf("timed out waiting for response for url %s\n", url)
+		err := fmt.Errorf("timeout waiting for response")
 		result <- Result{
 			URL:      url,
-			Duration: duration,
+			Duration: 2 * time.Second,
 			Error:    err,
 		}
-		return
 	}
-
-	defer resp.Body.Close()
-	httpResult := Result{
-		URL:        url,
-		StatusCode: resp.StatusCode,
-		Duration:   duration,
-		Error:      err,
-	}
-	result <- httpResult
 }

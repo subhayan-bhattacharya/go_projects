@@ -57,6 +57,12 @@ func TestCheckUrls(t *testing.T) {
 		if res.URL == "http://this-domain-definitely-does-not-exist.local" && res.Error != nil {
 			foundDialErr = true
 		}
+
+		if res.URL == slowServer.URL {
+			if res.Error == nil || res.Error.Error() != "timeout waiting for response" {
+				t.Errorf("expected timeout error, got %v", res.Error)
+			}
+		}
 	}
 
 	if !foundOk {
