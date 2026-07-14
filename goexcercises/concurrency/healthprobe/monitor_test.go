@@ -2,6 +2,7 @@ package healthprobe
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -81,5 +82,63 @@ func TestCheckUrls_EmptyList(t *testing.T) {
 	results := CheckUrls([]string{}, context.Background())
 	if len(results) != 0 {
 		t.Errorf("expected 0 results for empty list, got %d", len(results))
+	}
+}
+
+func TestCheckUrls_ContextCancelled(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	slowServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-r.Context().Done():
+			return
+		//We cannnot do a time.sleep here as that does not respect context cancellation
+		case <-time.After(10 * time.Second):
+			w.WriteHeader(http.StatusOK)
+		}
+	}))
+	defer slowServer.Close()
+
+	fastServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer fastServer.Close()
+
+	// More URLs than workers so some jobs are still queued when we cancel.
+	urls := []string{
+		fastServer.URL,
+		slowServer.URL,
+		slowServer.URL,
+		slowServer.URL,
+		slowServer.URL,
+		slowServer.URL,
+	}
+
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		cancel()
+	}()
+
+	start := time.Now()
+	results := CheckUrls(urls, ctx)
+	elapsed := time.Since(start)
+
+	if elapsed > 3*time.Second {
+		t.Errorf("expected fast shutdown, took %v", elapsed)
+	}
+
+	if len(results) == 0 {
+		t.Error("expected at least some partial results")
+	}
+
+	var foundCancel bool
+	for _, res := range results {
+		if errors.Is(res.Error, context.Canceled) {
+			foundCancel = true
+			break
+		}
+	}
+	if !foundCancel {
+		t.Errorf("expected at least one context.Canceled result, got %v", results)
 	}
 }

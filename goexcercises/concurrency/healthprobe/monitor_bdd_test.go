@@ -2,6 +2,7 @@ package healthprobe_test
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"time"
@@ -116,6 +117,74 @@ var _ = Describe("CheckUrls", func() {
 		It("returns an empty slice without blocking", func() {
 			results := healthprobe.CheckUrls([]string{}, context.Background())
 			Expect(results).To(BeEmpty())
+		})
+	})
+
+	Context("when context is cancelled", Ordered, func() {
+		var (
+			slowServer *httptest.Server
+			fastServer *httptest.Server
+			urls       []string
+			results    []healthprobe.Result
+			elapsed    time.Duration
+		)
+
+		BeforeAll(func() {
+			slowServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				select {
+				case <-r.Context().Done():
+					return
+				case <-time.After(10 * time.Second):
+					w.WriteHeader(http.StatusOK)
+				}
+			}))
+
+			fastServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			urls = []string{
+				fastServer.URL,
+				slowServer.URL,
+				slowServer.URL,
+				slowServer.URL,
+				slowServer.URL,
+				slowServer.URL,
+			}
+
+			ctx, cancel := context.WithCancel(context.Background())
+			go func() {
+				time.Sleep(100 * time.Millisecond)
+				cancel()
+			}()
+
+			start := time.Now()
+			results = healthprobe.CheckUrls(urls, ctx)
+			elapsed = time.Since(start)
+		})
+
+		AfterAll(func() {
+			slowServer.Close()
+			fastServer.Close()
+		})
+
+		It("shuts down quickly without waiting for slow servers", func() {
+			Expect(elapsed).To(BeNumerically("<", 3*time.Second))
+		})
+
+		It("returns at least some results", func() {
+			Expect(results).NotTo(BeEmpty())
+		})
+
+		It("includes at least one context.Canceled error", func() {
+			found := false
+			for _, res := range results {
+				if errors.Is(res.Error, context.Canceled) {
+					found = true
+					break
+				}
+			}
+			Expect(found).To(BeTrue(), "expected at least one context.Canceled result")
 		})
 	})
 })
