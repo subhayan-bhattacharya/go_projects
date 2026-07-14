@@ -1,6 +1,7 @@
 package healthprobe_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"time"
@@ -45,7 +46,7 @@ var _ = Describe("CheckUrls", func() {
 			}
 
 			start := time.Now()
-			results = healthprobe.CheckUrls(urls)
+			results = healthprobe.CheckUrls(urls, context.Background())
 			duration = time.Since(start)
 		})
 
@@ -113,7 +114,7 @@ var _ = Describe("CheckUrls", func() {
 
 	Context("when given an empty list", func() {
 		It("returns an empty slice without blocking", func() {
-			results := healthprobe.CheckUrls([]string{})
+			results := healthprobe.CheckUrls([]string{}, context.Background())
 			Expect(results).To(BeEmpty())
 		})
 	})

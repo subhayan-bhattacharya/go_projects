@@ -1,6 +1,7 @@
 package healthprobe
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"sync"
@@ -30,16 +31,24 @@ func feedJobsChannel(jobsChannel chan<- string, urls []string) {
 	close(jobsChannel) // Signal that there are no more jobs coming
 }
 
-func launchWorker(jobsChannel <-chan string, resultsChannel chan<- Result, wg *sync.WaitGroup) {
+func launchWorker(jobsChannel <-chan string, resultsChannel chan<- Result, wg *sync.WaitGroup, ctx context.Context) {
 	defer wg.Done()
-	for url := range jobsChannel {
-		healthcheck(resultsChannel, url)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case url, ok := <-jobsChannel:
+			if !ok {
+				return
+			}
+			healthcheck(ctx, resultsChannel, url)
+		}
 	}
 }
 
 //Go fan-out / fan-in orchestration pattern
 
-func CheckUrls(urls []string) []Result {
+func CheckUrls(urls []string, ctx context.Context) []Result {
 	if len(urls) == 0 {
 		return []Result{}
 	}
@@ -51,7 +60,7 @@ func CheckUrls(urls []string) []Result {
 	results := make([]Result, 0, len(urls))
 	for _ = range workers {
 		wg.Add(1)
-		go launchWorker(jobsChannel, resultsChannel, &wg)
+		go launchWorker(jobsChannel, resultsChannel, &wg, ctx)
 	}
 	go signalWorkIsDone(&wg, resultsChannel) // Launch this so that this makes sure the channel is closed
 	fmt.Println("Now consuming...")
@@ -61,7 +70,7 @@ func CheckUrls(urls []string) []Result {
 	return results
 }
 
-func healthcheck(result chan<- Result, url string) {
+func healthcheck(ctx context.Context, result chan<- Result, url string) {
 	//I make this a buffered channel so that when timeout happens, then this function would
 	//exit and then no one would be listening on this channel anymore for http results
 	httpChannel := make(chan Result, 1)
@@ -69,7 +78,7 @@ func healthcheck(result chan<- Result, url string) {
 	defer timer.Stop()
 	go func() {
 		client := http.Client{}
-		req, _ := http.NewRequest("GET", url, nil)
+		req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
 		start := time.Now()
 		resp, err := client.Do(req)
 		duration := time.Since(start)
@@ -91,6 +100,12 @@ func healthcheck(result chan<- Result, url string) {
 		httpChannel <- httpResult
 	}()
 	select {
+	case <-ctx.Done():
+		result <- Result{
+			URL:   url,
+			Error: ctx.Err(), // context.Canceled
+		}
+		return
 	case res := <-httpChannel:
 		result <- res
 	case <-timer.C:

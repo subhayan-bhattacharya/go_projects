@@ -1,6 +1,7 @@
 package healthprobe
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -32,7 +33,7 @@ func TestCheckUrls(t *testing.T) {
 	}
 
 	start := time.Now()
-	results := CheckUrls(urls)
+	results := CheckUrls(urls, context.Background())
 	duration := time.Since(start)
 
 	if len(results) != len(urls) {
@@ -77,7 +78,7 @@ func TestCheckUrls(t *testing.T) {
 }
 
 func TestCheckUrls_EmptyList(t *testing.T) {
-	results := CheckUrls([]string{})
+	results := CheckUrls([]string{}, context.Background())
 	if len(results) != 0 {
 		t.Errorf("expected 0 results for empty list, got %d", len(results))
 	}
