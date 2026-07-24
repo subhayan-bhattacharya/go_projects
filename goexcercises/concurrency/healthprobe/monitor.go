@@ -39,8 +39,10 @@ func launchWorker(jobsChannel <-chan string, resultsChannel chan<- Result, wg *s
 			return
 		case url, ok := <-jobsChannel:
 			if !ok {
+				fmt.Println("nothing left to consume...")
 				return
 			}
+			fmt.Printf("checking url %s\n", url)
 			healthcheck(ctx, resultsChannel, url)
 		}
 	}
