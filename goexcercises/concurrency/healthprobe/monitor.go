@@ -31,7 +31,7 @@ func feedJobsChannel(jobsChannel chan<- string, urls []string) {
 	close(jobsChannel) // Signal that there are no more jobs coming
 }
 
-func launchWorker(jobsChannel <-chan string, resultsChannel chan<- Result, wg *sync.WaitGroup, ctx context.Context) {
+func launchWorker(jobsChannel <-chan string, resultsChannel chan<- Result, wg *sync.WaitGroup, ctx context.Context, ticker <-chan time.Time) {
 	defer wg.Done()
 	for {
 		select {
@@ -42,8 +42,17 @@ func launchWorker(jobsChannel <-chan string, resultsChannel chan<- Result, wg *s
 				fmt.Println("nothing left to consume...")
 				return
 			}
-			fmt.Printf("checking url %s\n", url)
-			healthcheck(ctx, resultsChannel, url)
+			fmt.Printf("consumed url %s now waiting for ticker\n", url)
+			select {
+			case <-ctx.Done():
+				resultsChannel <- Result{
+					URL:   url,
+					Error: ctx.Err(), // context.Canceled
+				}
+				return
+			case <-ticker:
+				healthcheck(ctx, resultsChannel, url)
+			}
 		}
 	}
 }
@@ -60,9 +69,11 @@ func CheckUrls(urls []string, ctx context.Context) []Result {
 	//launching one go routine per url
 	feedJobsChannel(jobsChannel, urls)
 	results := make([]Result, 0, len(urls))
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
 	for _ = range workers {
 		wg.Add(1)
-		go launchWorker(jobsChannel, resultsChannel, &wg, ctx)
+		go launchWorker(jobsChannel, resultsChannel, &wg, ctx, ticker.C)
 	}
 	go signalWorkIsDone(&wg, resultsChannel) // Launch this so that this makes sure the channel is closed
 	fmt.Println("Now consuming...")

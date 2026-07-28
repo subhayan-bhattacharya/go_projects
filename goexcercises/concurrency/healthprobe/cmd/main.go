@@ -43,8 +43,8 @@ func main() {
 		select {
 		case <-ticker.C:
 			summary = nil
-			for _, result := range healthprobe.CheckUrls(urls, ctx) {
-				fmt.Printf("%+v\n", result)
+			for index, result := range healthprobe.CheckUrls(urls, ctx) {
+				fmt.Printf("Result number: %d %+v\n", index, result)
 				summary = append(summary, result)
 			}
 		case <-ctx.Done():

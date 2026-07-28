@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"slices"
+	"sync"
 	"testing"
 	"time"
 )
@@ -85,38 +87,74 @@ func TestCheckUrls_EmptyList(t *testing.T) {
 	}
 }
 
-func TestCheckUrls_ContextCancelled(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+func TestCheckUrls_RateLimitsRequestStarts(t *testing.T) {
+	var mu sync.Mutex
+	requestTimes := make([]time.Time, 0, 3)
 
-	slowServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		select {
-		case <-r.Context().Done():
-			return
-		//We cannnot do a time.sleep here as that does not respect context cancellation
-		case <-time.After(10 * time.Second):
-			w.WriteHeader(http.StatusOK)
-		}
-	}))
-	defer slowServer.Close()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		requestTimes = append(requestTimes, time.Now())
+		mu.Unlock()
 
-	fastServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
-	defer fastServer.Close()
+	defer server.Close()
+
+	urls := []string{
+		server.URL,
+		server.URL,
+		server.URL,
+	}
+
+	results := CheckUrls(urls, context.Background())
+	if len(results) != len(urls) {
+		t.Fatalf("expected %d results, got %d", len(urls), len(results))
+	}
+
+	mu.Lock()
+	times := slices.Clone(requestTimes)
+	mu.Unlock()
+
+	if len(times) != len(urls) {
+		t.Fatalf("expected the server to receive %d requests, got %d", len(urls), len(times))
+	}
+
+	const minimumGap = 400 * time.Millisecond
+	for i := 1; i < len(times); i++ {
+		gap := times[i].Sub(times[i-1])
+		if gap < minimumGap {
+			t.Errorf(
+				"requests %d and %d started only %v apart; expected at least %v",
+				i,
+				i+1,
+				gap,
+				minimumGap,
+			)
+		}
+	}
+}
+
+func TestCheckUrls_ContextCancelledWhileWaitingForRateLimit(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
 
 	// More URLs than workers so some jobs are still queued when we cancel.
 	urls := []string{
-		fastServer.URL,
-		slowServer.URL,
-		slowServer.URL,
-		slowServer.URL,
-		slowServer.URL,
-		slowServer.URL,
+		server.URL,
+		server.URL,
+		server.URL,
+		server.URL,
+		server.URL,
+		server.URL,
 	}
 
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		cancel()
+		cancel() // cancels the context.
 	}()
 
 	start := time.Now()

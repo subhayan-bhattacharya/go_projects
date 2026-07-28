@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"slices"
+	"sync"
 	"time"
 
 	"healthprobe"
@@ -113,6 +115,49 @@ var _ = Describe("CheckUrls", func() {
 		})
 	})
 
+	Context("when rate limiting request starts", func() {
+		It("spaces consecutive requests apart", func() {
+			var mu sync.Mutex
+			requestTimes := make([]time.Time, 0, 3)
+
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				mu.Lock()
+				requestTimes = append(requestTimes, time.Now())
+				mu.Unlock()
+
+				w.WriteHeader(http.StatusOK)
+			}))
+			defer server.Close()
+
+			urls := []string{
+				server.URL,
+				server.URL,
+				server.URL,
+			}
+
+			results := healthprobe.CheckUrls(urls, context.Background())
+			Expect(results).To(HaveLen(len(urls)))
+
+			mu.Lock()
+			times := slices.Clone(requestTimes)
+			mu.Unlock()
+
+			Expect(times).To(HaveLen(len(urls)))
+
+			const minimumGap = 400 * time.Millisecond
+			for i := 1; i < len(times); i++ {
+				gap := times[i].Sub(times[i-1])
+				Expect(gap).To(
+					BeNumerically(">=", minimumGap),
+					"requests %d and %d started only %v apart",
+					i,
+					i+1,
+					gap,
+				)
+			}
+		})
+	})
+
 	Context("when given an empty list", func() {
 		It("returns an empty slice without blocking", func() {
 			results := healthprobe.CheckUrls([]string{}, context.Background())
@@ -120,36 +165,26 @@ var _ = Describe("CheckUrls", func() {
 		})
 	})
 
-	Context("when context is cancelled", Ordered, func() {
+	Context("when context is cancelled while waiting for the rate limit", Ordered, func() {
 		var (
-			slowServer *httptest.Server
-			fastServer *httptest.Server
-			urls       []string
-			results    []healthprobe.Result
-			elapsed    time.Duration
+			server  *httptest.Server
+			urls    []string
+			results []healthprobe.Result
+			elapsed time.Duration
 		)
 
 		BeforeAll(func() {
-			slowServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				select {
-				case <-r.Context().Done():
-					return
-				case <-time.After(10 * time.Second):
-					w.WriteHeader(http.StatusOK)
-				}
-			}))
-
-			fastServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			}))
 
 			urls = []string{
-				fastServer.URL,
-				slowServer.URL,
-				slowServer.URL,
-				slowServer.URL,
-				slowServer.URL,
-				slowServer.URL,
+				server.URL,
+				server.URL,
+				server.URL,
+				server.URL,
+				server.URL,
+				server.URL,
 			}
 
 			ctx, cancel := context.WithCancel(context.Background())
@@ -164,11 +199,10 @@ var _ = Describe("CheckUrls", func() {
 		})
 
 		AfterAll(func() {
-			slowServer.Close()
-			fastServer.Close()
+			server.Close()
 		})
 
-		It("shuts down quickly without waiting for slow servers", func() {
+		It("shuts down quickly while workers wait for rate-limit permission", func() {
 			Expect(elapsed).To(BeNumerically("<", 3*time.Second))
 		})
 
