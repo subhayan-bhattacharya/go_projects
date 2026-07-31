@@ -76,7 +76,13 @@ func main() {
 	statsChannel := make(chan healthprobe.Result)
 	go updateStats(statsChannel, store)
 	go healthprobe.Broadcast(resultsChannel, statsChannel)
-	go healthprobe.CheckUrls(urls, ctx, resultsChannel)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		healthprobe.CheckUrls(urls, ctx, resultsChannel)
+	}()
+
 	if ctx.Err() != nil {
 		fmt.Println("context was cancelled mid flight...")
 		store.mu.Lock()
@@ -85,18 +91,23 @@ func main() {
 		fmt.Println()
 		return
 	}
-	orchestrate(ticker, urls, ctx, resultsChannel)
+	orchestrate(ticker, urls, ctx, resultsChannel, &wg)
+	wg.Wait()
+	close(resultsChannel)
 	store.mu.Lock()
 	fmt.Println(store.data)
 	store.mu.Unlock()
-	close(resultsChannel)
 }
 
-func orchestrate(ticker *time.Ticker, urls []string, ctx context.Context, resultsChannel chan healthprobe.Result) {
+func orchestrate(ticker *time.Ticker, urls []string, ctx context.Context, resultsChannel chan healthprobe.Result, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-ticker.C:
-			go healthprobe.CheckUrls(urls, ctx, resultsChannel)
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				healthprobe.CheckUrls(urls, ctx, resultsChannel)
+			}()
 		case <-ctx.Done():
 			fmt.Println("interrupted due to context cancellation..exiting orchestrate function")
 			return
