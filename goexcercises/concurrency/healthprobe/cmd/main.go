@@ -8,8 +8,47 @@ import (
 	"net/http/httptest"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 )
+
+type Stats struct {
+	Checks       int
+	Failures     int
+	TotalLatency time.Duration
+}
+
+type SafeCounter struct {
+	mu   sync.Mutex
+	data map[string]Stats
+}
+
+func updateStats(statsChannel <-chan healthprobe.Result, counter *SafeCounter) {
+	for result := range statsChannel {
+		counter.mu.Lock()
+		stats, ok := counter.data[result.URL]
+		if ok {
+			stats.Checks += 1
+			if result.Error != nil {
+				stats.Failures += 1
+			}
+			totalLatency := stats.TotalLatency + result.Duration
+			stats.TotalLatency = totalLatency
+		} else {
+			failure := 0
+			if result.Error != nil {
+				failure = 1
+			}
+			stats = Stats{
+				Checks:       1,
+				Failures:     failure,
+				TotalLatency: result.Duration,
+			}
+		}
+		counter.data[result.URL] = stats
+		counter.mu.Unlock()
+	}
+}
 
 func main() {
 	slowServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -21,7 +60,9 @@ func main() {
 	defer ticker.Stop()
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
-
+	store := &SafeCounter{
+		data: make(map[string]Stats),
+	}
 	urls := []string{
 		"https://www.google.com",               // fast — should succeed quickly
 		"https://www.github.com",               // fast — should succeed quickly
@@ -31,25 +72,33 @@ func main() {
 		slowServer.URL,
 		slowServer.URL,
 	}
-	for _, result := range healthprobe.CheckUrls(urls, ctx) {
-		fmt.Printf("%+v\n", result)
-	}
+	resultsChannel := make(chan healthprobe.Result)
+	statsChannel := make(chan healthprobe.Result)
+	go updateStats(statsChannel, store)
+	go healthprobe.Broadcast(resultsChannel, statsChannel)
+	go healthprobe.CheckUrls(urls, ctx, resultsChannel)
 	if ctx.Err() != nil {
 		fmt.Println("context was cancelled mid flight...")
+		store.mu.Lock()
+		fmt.Println(store.data)
+		store.mu.Unlock()
+		fmt.Println()
 		return
 	}
-	summary := make([]healthprobe.Result, 0, len(urls))
+	orchestrate(ticker, urls, ctx, resultsChannel)
+	store.mu.Lock()
+	fmt.Println(store.data)
+	store.mu.Unlock()
+	close(resultsChannel)
+}
+
+func orchestrate(ticker *time.Ticker, urls []string, ctx context.Context, resultsChannel chan healthprobe.Result) {
 	for {
 		select {
 		case <-ticker.C:
-			summary = nil
-			for index, result := range healthprobe.CheckUrls(urls, ctx) {
-				fmt.Printf("Result number: %d %+v\n", index, result)
-				summary = append(summary, result)
-			}
+			go healthprobe.CheckUrls(urls, ctx, resultsChannel)
 		case <-ctx.Done():
-			fmt.Println("interrupted due to context cancellation")
-			fmt.Printf("the last round fetched %d results \n", len(summary))
+			fmt.Println("interrupted due to context cancellation..exiting orchestrate function")
 			return
 		}
 	}

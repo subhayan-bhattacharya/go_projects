@@ -17,13 +17,6 @@ type Result struct {
 
 const workers = 3
 
-func signalWorkIsDone(wg *sync.WaitGroup, channel chan Result) {
-	//The idea is to make sure that it waits for the other goroutines to complete
-	//and then close the channel so that the range loop does not hang
-	wg.Wait()
-	close(channel)
-}
-
 func feedJobsChannel(jobsChannel chan<- string, urls []string) {
 	for _, url := range urls {
 		jobsChannel <- url
@@ -59,28 +52,22 @@ func launchWorker(jobsChannel <-chan string, resultsChannel chan<- Result, wg *s
 
 //Go fan-out / fan-in orchestration pattern
 
-func CheckUrls(urls []string, ctx context.Context) []Result {
+func CheckUrls(urls []string, ctx context.Context, resultsChannel chan Result) {
 	if len(urls) == 0 {
-		return []Result{}
+		return
 	}
 	var wg sync.WaitGroup
-	resultsChannel := make(chan Result)
 	jobsChannel := make(chan string, len(urls)) // create a buffered channel to feed the urls instead of
 	//launching one go routine per url
 	feedJobsChannel(jobsChannel, urls)
-	results := make([]Result, 0, len(urls))
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 	for _ = range workers {
 		wg.Add(1)
 		go launchWorker(jobsChannel, resultsChannel, &wg, ctx, ticker.C)
 	}
-	go signalWorkIsDone(&wg, resultsChannel) // Launch this so that this makes sure the channel is closed
-	fmt.Println("Now consuming...")
-	for result := range resultsChannel {
-		results = append(results, result)
-	}
-	return results
+	//The idea is to make sure that it waits for the other goroutines to complete
+	wg.Wait()
 }
 
 func healthcheck(ctx context.Context, result chan<- Result, url string) {
