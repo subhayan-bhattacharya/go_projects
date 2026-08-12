@@ -1,0 +1,16 @@
+{
+  "users": [
+    { "Name": "Charlie", "Age": 30, "Role": "user" },
+    { "Name": "Alice",   "Age": 35, "Role": "admin" },
+    { "Name": "Bob",     "Age": 35, "Role": "user" },
+    { "Name": "David",   "Age": 45, "Role": "admin" },
+    { "Name": "Eve",     "Age": 30, "Role": "user" },
+    { "Name": "Frank",   "Age": 35, "Role": "admin" },
+    { "Name": "Grace",   "Age": 25, "Role": "guest" },
+    { "Name": "Heidi",   "Age": 45, "Role": "admin" },
+    { "Name": "Ivan",    "Age": 30, "Role": "user" },
+    { "Name": "Judy",    "Age": 25, "Role": "guest" },
+    { "Name": "Mallory", "Age": 35, "Role": "user" },
+    { "Name": "Oscar",   "Age": 50, "Role": "admin" }
+  ]
+}
