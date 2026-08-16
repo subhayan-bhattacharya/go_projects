@@ -3,29 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net/http"
-	"net/url"
+	"sitemapbuilder"
 )
 
 func main() {
-	website := flag.String("website", "https://gophercises.com/demos/cyoa", "The website to scrape")
+	parseUrl := flag.String("url", "http://gophercises.com", "the url that you want to use the sitemap for.")
+	maxDepth := flag.Int("depth", 10, "the maximum depth to which you want to recurse to.")
 	flag.Parse()
-	resp, err := http.Get(*website)
-	if err != nil {
-		panic(err)
+	data := sitemapbuilder.Bfs(*parseUrl, *maxDepth)
+	for _, d := range data {
+		fmt.Println(d)
 	}
-	defer resp.Body.Close()
-	reqUrl := resp.Request.URL
-	fmt.Println(reqUrl)
-	baseUrl := &url.URL{
-		Scheme: reqUrl.Scheme,
-		Host:   reqUrl.Host,
-	}
-	base := baseUrl.String()
-	fmt.Println(base)
-	//data, _ := sitemapbuilder.Parse(resp.Body)
-	////io.Copy(os.Stdout, resp.Body)
-	//for _, hrefs := range data {
-	//	fmt.Println(hrefs)
-	//}
 }
