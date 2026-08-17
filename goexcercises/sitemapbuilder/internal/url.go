@@ -14,19 +14,23 @@ import (
 var ErrCouldNotDownloadHtml = errors.New("could not download html")
 var ErrCouldNotReadResponseBody = errors.New("could not read response body")
 
-func GetUrlData(url string) (error, string) {
+func GetUrlData(url string) (error, string, string, string) {
 	var output string
+	var scheme string
+	var hostname string
 	resp, err := http.Get(url)
 	if err != nil {
-		return fmt.Errorf("%s: %w", url, ErrCouldNotDownloadHtml), output
+		return fmt.Errorf("%s: %w", url, ErrCouldNotDownloadHtml), output, scheme, hostname
 	}
+	scheme = resp.Request.URL.Scheme
+	hostname = resp.Request.URL.Host
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return ErrCouldNotReadResponseBody, output
+		return ErrCouldNotReadResponseBody, output, scheme, hostname
 	}
 	output = string(body)
-	return nil, output
+	return nil, output, scheme, hostname
 }
 
 func Map[T, U any](data iter.Seq[T], fn func(T) U) iter.Seq[U] {

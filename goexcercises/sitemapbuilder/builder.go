@@ -38,7 +38,7 @@ func Bfs(website string, depth int) []string {
 
 func GetEmbeddedLinks(website string) ([]string, error) {
 	var values []string
-	err, data := internal.GetUrlData(website)
+	err, data, scheme, hostname := internal.GetUrlData(website)
 	if errors.Is(err, internal.ErrCouldNotDownloadHtml) {
 		panic(fmt.Sprintf("could not read html: %v", err))
 	} else if errors.Is(err, internal.ErrCouldNotReadResponseBody) {
@@ -52,13 +52,17 @@ func GetEmbeddedLinks(website string) ([]string, error) {
 	for _, link := range links {
 		allUrls = append(allUrls, link.Href)
 	}
-	parsed, err := url.Parse(website)
-	if err != nil {
-		return values, fmt.Errorf("could not parse url")
-	}
+	//parsed, err := url.Parse(website)
+	//if err != nil {
+	//	return values, fmt.Errorf("could not parse url")
+	//}
+	//baseUrl := &url.URL{
+	//	Scheme: parsed.Scheme,
+	//	Host:   parsed.Host,
+	//}
 	baseUrl := &url.URL{
-		Scheme: parsed.Scheme,
-		Host:   parsed.Host,
+		Scheme: scheme,
+		Host:   hostname,
 	}
 	preProcessedUrls := internal.PreProcessUrls(allUrls, baseUrl)
 	values = append(values, preProcessedUrls...)
