@@ -8,12 +8,27 @@ import (
 	"strings"
 )
 
+const Xmlns = "http://www.sitemaps.org/schemas/sitemap/0.9"
+
+type Loc struct {
+	Value string `xml:"loc"`
+}
+
+type UrlSet struct {
+	Xmlns string `xml:"xmlns,attr"`
+	Urls  []Loc  `xml:"url"`
+}
+
 func Bfs(website string, depth int) []string {
 	seen := make(map[string]struct{})
 	var queue map[string]struct{}
 	nextQueue := map[string]struct{}{website: {}}
-	for _ = range depth + 1 {
+	for i := range 100000 {
+		fmt.Println("i=", i)
 		queue, nextQueue = nextQueue, make(map[string]struct{})
+		if len(queue) == 0 {
+			break
+		}
 		for queuedUrl, _ := range queue {
 			if _, ok := seen[queuedUrl]; ok {
 				continue
@@ -25,7 +40,9 @@ func Bfs(website string, depth int) []string {
 				continue
 			}
 			for _, link := range links {
-				nextQueue[link] = struct{}{}
+				if _, ok := seen[link]; !ok {
+					nextQueue[link] = struct{}{}
+				}
 			}
 		}
 	}
