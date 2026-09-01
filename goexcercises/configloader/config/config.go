@@ -40,12 +40,12 @@ func requiredBool(loadFunc func(string) (string, bool), field string) (bool, err
 			Err:   ErrMissingField,
 		}
 	}
-	parsedDebug, err := strconv.ParseBool(field)
+	parsedDebug, err := strconv.ParseBool(value)
 	if err != nil {
 		return debug, &FieldError{
 			Field: field,
 			Value: value,
-			Err:   ErrMissingField,
+			Err:   err,
 		}
 	}
 	return parsedDebug, nil
@@ -60,7 +60,7 @@ func requiredDuration(loadFunc func(string) (string, bool), field string) (time.
 			Err:   ErrMissingField,
 		}
 	}
-	sec, err := strconv.Atoi(value)
+	sec, err := time.ParseDuration(value)
 	if err != nil {
 		return duration, &FieldError{
 			Field: field,
@@ -104,17 +104,25 @@ func requiredInt(loadFunc func(string) (string, bool), field string) (int, error
 func Load() (*Config, error) {
 	var errs []error
 	cfg := &Config{}
-	port, err := requiredInt(os.LookupEnv, "port")
-	errs = append(errs, err)
+	port, err := requiredInt(os.LookupEnv, "PORT")
+	if err != nil {
+		errs = append(errs, err)
+	}
 	cfg.Port = port
-	databaseUrl, err := requiredString(os.LookupEnv, "databaseUrl")
-	errs = append(errs, err)
+	databaseUrl, err := requiredString(os.LookupEnv, "DATABASE_URL")
+	if err != nil {
+		errs = append(errs, err)
+	}
 	cfg.DatabaseUrl = databaseUrl
-	duration, err := requiredDuration(os.LookupEnv, "timeout")
-	errs = append(errs, err)
+	duration, err := requiredDuration(os.LookupEnv, "TIMEOUT")
+	if err != nil {
+		errs = append(errs, err)
+	}
 	cfg.Timeout = duration
-	debug, err := requiredBool(os.LookupEnv, "debug")
-	errs = append(errs, err)
+	debug, err := requiredBool(os.LookupEnv, "DEBUG")
+	if err != nil {
+		errs = append(errs, err)
+	}
 	cfg.Debug = debug
 	if len(errs) != 0 {
 		return nil, errors.Join(errs...)
