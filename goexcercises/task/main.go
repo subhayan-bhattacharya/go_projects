@@ -13,10 +13,7 @@ import (
 func main() {
 	homeDir, _ := homedir.Dir()
 	dbPath := filepath.Join(homeDir, "tasks.db")
-	err := db.Init(dbPath)
-	if err != nil {
-		must(err)
-	}
+	must(db.Init(dbPath))
 	must(cmd.RootCommand.Execute())
 }
 
