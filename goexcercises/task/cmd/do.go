@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"strconv"
+	"task/db"
 
 	"github.com/spf13/cobra"
 )
@@ -23,6 +24,10 @@ var doCmd = &cobra.Command{
 		}
 		for _, id := range ids {
 			fmt.Printf("marking id %d off your list\n", id)
+			err := db.DeleteTask(id)
+			if err != nil {
+				cmd.PrintErrf("Could not delete task %d: %v\n", id, err)
+			}
 		}
 	},
 }
