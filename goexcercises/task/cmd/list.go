@@ -22,8 +22,9 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "list the tasks that we have",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		repo := GetRepository(cmd)
 		fmt.Println("listing all tasks...")
-		tasks, err := db.AllTasks()
+		tasks, err := repo.AllTasks()
 		if err != nil {
 			return err
 		}

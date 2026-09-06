@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
-	"task/db"
 
 	"github.com/spf13/cobra"
 )
 
 func completeTaskKeys(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	tasks, err := db.AllTasks()
+	repo := GetRepository(cmd)
+	tasks, err := repo.AllTasks()
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveError
 	}
@@ -30,6 +30,7 @@ var doCmd = &cobra.Command{
 	Short:             "do the command, so move it off the list",
 	ValidArgsFunction: completeTaskKeys,
 	Run: func(cmd *cobra.Command, args []string) {
+		repo := GetRepository(cmd)
 		var ids []int
 		for _, arg := range args {
 			intArg, err := strconv.Atoi(arg)
@@ -41,7 +42,7 @@ var doCmd = &cobra.Command{
 		}
 		for _, id := range ids {
 			fmt.Printf("marking id %d off your list\n", id)
-			err := db.DeleteTask(id)
+			err := repo.DeleteTask(id)
 			if err != nil {
 				cmd.PrintErrf("Could not delete task %d: %v\n", id, err)
 			}

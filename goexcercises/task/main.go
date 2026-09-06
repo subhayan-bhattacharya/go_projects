@@ -13,7 +13,15 @@ import (
 func main() {
 	homeDir, _ := homedir.Dir()
 	dbPath := filepath.Join(homeDir, "tasks.db")
-	must(db.Init(dbPath))
+
+	// Initialize repository with dependency injection
+	repo, err := db.NewBoltRepository(dbPath)
+	must(err)
+	defer repo.Close()
+
+	// Set the repository in the command context
+	cmd.SetRepository(repo)
+
 	must(cmd.RootCommand.Execute())
 }
 
