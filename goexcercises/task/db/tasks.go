@@ -29,6 +29,18 @@ func Init(dbPath string) error {
 	})
 }
 
+func ClearTasks() error {
+	err := db.Update(func(tx *bolt.Tx) error {
+		err := tx.DeleteBucket(taskbucket)
+		if err != nil {
+			return err
+		}
+		_, err = tx.CreateBucketIfNotExists(taskbucket)
+		return err
+	})
+	return err
+}
+
 func CreateTask(task string, priority int) (int, error) {
 	var id int
 	err := db.Update(func(tx *bolt.Tx) error {
