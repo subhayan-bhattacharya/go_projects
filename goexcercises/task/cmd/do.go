@@ -2,16 +2,33 @@ package cmd
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"task/db"
 
 	"github.com/spf13/cobra"
 )
 
+func completeTaskKeys(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	tasks, err := db.AllTasks()
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveError
+	}
+	var keys []string
+	for _, task := range tasks {
+		if slices.Contains(args, strconv.Itoa(task.Key)) {
+			continue // already given on the command line
+		}
+		keys = append(keys, fmt.Sprintf("%d\t%s", task.Key, task.Value))
+	}
+	return keys, cobra.ShellCompDirectiveNoFileComp
+}
+
 // doCmd represents the do command
 var doCmd = &cobra.Command{
-	Use:   "do",
-	Short: "do the command, so move it off the list",
+	Use:               "do",
+	Short:             "do the command, so move it off the list",
+	ValidArgsFunction: completeTaskKeys,
 	Run: func(cmd *cobra.Command, args []string) {
 		var ids []int
 		for _, arg := range args {
