@@ -2,16 +2,20 @@ package movevaluesfirst
 
 import "slices"
 
-func moveValueFirst(nums []int, target int) []int {
+func moveValuesFirst(nums []int, first int, second int) []int {
 	results := make([]int, 0, len(nums))
 	frequency := map[int]int{}
 	for _, num := range nums {
-		frequency[num]++
+		if num == first || num == second {
+			frequency[num]++
+		}
 	}
-	temp := slices.Repeat([]int{target}, frequency[target])
+	temp := slices.Repeat([]int{first}, frequency[first])
+	results = append(results, temp...)
+	temp = slices.Repeat([]int{second}, frequency[second])
 	results = append(results, temp...)
 	for _, num := range nums {
-		if num != target {
+		if num != first && num != second {
 			results = append(results, num)
 		}
 	}
