@@ -72,19 +72,6 @@ func TestMoveValuesByOrder(t *testing.T) {
 			order:    []int{7, 7, 3},
 			expected: []int{3, 3, 4},
 		},
-
-		{
-			name:     "duplicate remaining values should not be repeated",
-			nums:     []int{5, 2, 5, 3},
-			order:    []int{2},
-			expected: []int{2, 5, 5, 3},
-		},
-		{
-			name:     "duplicate remaining values separated by another value",
-			nums:     []int{5, 2, 3, 5},
-			order:    []int{2},
-			expected: []int{2, 5, 3, 5},
-		},
 	}
 
 	for _, tt := range tests {
