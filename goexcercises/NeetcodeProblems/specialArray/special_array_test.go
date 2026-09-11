@@ -51,7 +51,7 @@ func TestSpecialArray(t *testing.T) {
 		{
 			name:     "some values below answer",
 			nums:     []int{1, 2, 5, 6},
-			expected: 2,
+			expected: -1,
 		},
 		{
 			name:     "duplicate boundary values",
@@ -66,7 +66,7 @@ func TestSpecialArray(t *testing.T) {
 		{
 			name:     "unsorted input",
 			nums:     []int{6, 0, 7, 2, 1},
-			expected: 2,
+			expected: -1,
 		},
 		{
 			name:     "many zeros with a few large values",
