@@ -25,6 +25,21 @@ type Repository interface {
 	AddUser(user User) error
 	DeleteUser(username string) error
 	GetUser(username string) (User, error)
+	AllUserNames() ([]string, error)
+}
+
+func (r *BoltRepository) AllUserNames() ([]string, error) {
+	var usernames []string
+	err := r.db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(userbucket)
+		cursor := bucket.Cursor()
+		for k, _ := cursor.First(); k != nil; k, _ = cursor.Next() {
+			// Converting []byte to string creates a safe heap copy automatically
+			usernames = append(usernames, string(k))
+		}
+		return nil
+	})
+	return usernames, err
 }
 
 type BoltRepository struct {
