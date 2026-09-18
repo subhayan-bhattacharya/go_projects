@@ -28,14 +28,19 @@ type Repository interface {
 	AllUserNames() ([]string, error)
 }
 
-func (r *BoltRepository) AllUserNames() ([]string, error) {
+func (r *BoltRepository) AllUserNames(limit int) ([]string, error) {
 	var usernames []string
+	if limit > 0 {
+		usernames = make([]string, 0, limit)
+	}
 	err := r.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(userbucket)
 		cursor := bucket.Cursor()
 		for k, _ := cursor.First(); k != nil; k, _ = cursor.Next() {
-			// Converting []byte to string creates a safe heap copy automatically
-			usernames = append(usernames, string(k))
+			if limit > 0 && len(usernames) <= limit {
+				// Converting []byte to string creates a safe heap copy automatically
+				usernames = append(usernames, string(k))
+			}
 		}
 		return nil
 	})
