@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+
 	"workerpool/db"
 )
 
@@ -16,7 +17,7 @@ type Result[T any] struct {
 	Error error
 }
 
-func sendData(out chan<- Data, usernames []string) {
+func SendData(out chan<- Data, usernames []string) {
 	for index, username := range usernames {
 		data := Data{
 			Index:    index,
@@ -26,7 +27,7 @@ func sendData(out chan<- Data, usernames []string) {
 	}
 }
 
-func checkAndGetResultForUsername(repo *db.BoltRepository, dataChannel <-chan Data, resultsChannel chan<- Result[bool]) {
+func ResultForUsername(repo *db.BoltRepository, dataChannel <-chan Data, resultsChannel chan<- Result[bool]) {
 	data := <-dataChannel
 	username := data.Username
 	if username == "" {

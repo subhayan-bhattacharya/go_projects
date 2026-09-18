@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+
 	"workerpool/db"
 	"workerpool/seeder"
 )
@@ -23,7 +24,7 @@ func main() {
 	seededInputUsernames := seeder.SeedInput(repo)
 	dataChanel := make(chan Data)
 	//resultsChannel := make(chan Result[bool])
-	go sendData(dataChanel, seededInputUsernames)
+	go SendData(dataChanel, seededInputUsernames)
 }
 
 func must(err error) {
