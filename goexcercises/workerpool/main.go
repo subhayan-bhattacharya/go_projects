@@ -22,9 +22,11 @@ func main() {
 	defer repo.Close()
 	seeder.SeedDb(repo)
 	seededInputUsernames := seeder.SeedInput(repo)
-	dataChanel := make(chan Data)
-	//resultsChannel := make(chan Result[bool])
-	go SendData(dataChanel, seededInputUsernames)
+	workers := 3
+	results := MapConcurrent[string, bool](seededInputUsernames, workers, ResultForUsername(repo))
+	for _, result := range results {
+		fmt.Printf("%v\n", result)
+	}
 }
 
 func must(err error) {

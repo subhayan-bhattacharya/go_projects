@@ -1,13 +1,38 @@
 package main
 
 import (
+	"cmp"
 	"errors"
+	"slices"
+	"sync"
 
 	"workerpool/db"
 )
 
-func MapConcurrent[In, Out any](data []In, workers int, fn func(In) (Out, error)) []Out {
-	var output []Out
+func MapConcurrent[In, Out any](
+	inputData []In, workers int, fn func(data Data[In]) Result[Out],
+) []Result[Out] {
+	var output []Result[Out]
+	dataChannel := make(chan Data[In])
+	resultsChannel := make(chan Result[Out])
+	go SendData(dataChannel, inputData)
+	var processWg sync.WaitGroup
+	for range workers {
+		processWg.Add(1)
+		go processData(&processWg, dataChannel, resultsChannel, fn)
+	}
+	go func() {
+		processWg.Wait()
+		close(resultsChannel)
+	}()
+	for val := range resultsChannel {
+		output = append(output, val)
+	}
+	slices.SortFunc(
+		output, func(a, b Result[Out]) int {
+			return cmp.Compare(a.Index, b.Index)
+		},
+	)
 	return output
 }
 
@@ -17,61 +42,69 @@ type Result[T any] struct {
 	Error error
 }
 
-func SendData(out chan<- Data, usernames []string) {
-	for index, username := range usernames {
-		data := Data{
+func SendData[In any](out chan<- Data[In], inputs []In) {
+	for index, input := range inputs {
+		data := Data[In]{
 			Index:    index,
-			Username: username,
+			Username: input,
 		}
 		out <- data
 	}
+	close(out)
 }
 
-func ResultForUsername(repo *db.BoltRepository, dataChannel <-chan Data, resultsChannel chan<- Result[bool]) {
-	data := <-dataChannel
-	username := data.Username
-	if username == "" {
-		result := Result[bool]{
-			Index: 0,
-			Value: false,
-			Error: errors.New("empty username"),
-		}
-		resultsChannel <- result
-		return
+func processData[In, Out any](
+	wg *sync.WaitGroup, inChannel <-chan Data[In],
+	resultsChannel chan<- Result[Out], fn func(Data[In]) Result[Out],
+) {
+	defer wg.Done()
+	for input := range inChannel {
+		output := fn(input)
+		resultsChannel <- output
 	}
-	if len(username) < 3 {
-		result := Result[bool]{
-			Index: 0,
-			Value: false,
-			Error: errors.New("too short a username"),
-		}
-		resultsChannel <- result
-		return
-	}
-	userDetails, err := repo.GetUser(username)
-	if err != nil {
-		if errors.Is(err, db.ErrUserNotFound) {
-			result := Result[bool]{
-				Index: 0,
+}
+
+func ResultForUsername(repo *db.BoltRepository) func(data Data[string]) Result[bool] {
+	return func(data Data[string]) Result[bool] {
+		username := data.Username
+		var result Result[bool]
+		if username == "" {
+			return Result[bool]{
+				Index: data.Index,
 				Value: false,
-				Error: db.ErrUserNotFound,
+				Error: errors.New("empty username"),
 			}
-			resultsChannel <- result
 		}
-	} else {
-		if userDetails.Username == username {
-			result := Result[bool]{
-				Index: 0,
-				Value: true,
-				Error: nil,
+		if len(username) < 3 {
+			return Result[bool]{
+				Index: data.Index,
+				Value: false,
+				Error: errors.New("too short a username"),
 			}
-			resultsChannel <- result
 		}
+		userDetails, err := repo.GetUser(username)
+		if err != nil {
+			if errors.Is(err, db.ErrUserNotFound) {
+				result = Result[bool]{
+					Index: data.Index,
+					Value: false,
+					Error: db.ErrUserNotFound,
+				}
+			}
+		} else {
+			if userDetails.Username == username {
+				result = Result[bool]{
+					Index: data.Index,
+					Value: true,
+					Error: nil,
+				}
+			}
+		}
+		return result
 	}
-	return
 }
 
-type Data struct {
+type Data[In any] struct {
 	Index    int
-	Username string
+	Username In
 }

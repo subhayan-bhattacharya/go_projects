@@ -25,7 +25,7 @@ type Repository interface {
 	AddUser(user User) error
 	DeleteUser(username string) error
 	GetUser(username string) (User, error)
-	AllUserNames() ([]string, error)
+	AllUserNames(limit int) ([]string, error)
 }
 
 func (r *BoltRepository) AllUserNames(limit int) ([]string, error) {
@@ -53,7 +53,7 @@ type BoltRepository struct {
 
 // NewBoltRepository creates a new BoltRepository and initializes the database
 func NewBoltRepository(dbPath string) (*BoltRepository, error) {
-	boltDB, err := bolt.Open(dbPath, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	boltDB, err := bolt.Open(dbPath, 0o600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		return nil, err
 	}
